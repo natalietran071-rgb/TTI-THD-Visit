@@ -43,8 +43,6 @@ header .sub{color:var(--muted);margin:8px 0 0;font-size:16px}
 .tabs button .n{font-weight:500;opacity:.7;margin-left:4px}
 .right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 input[type=search]{font:inherit;padding:8px 12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);min-width:220px}
-label.me{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;padding:7px 10px;border:1px solid var(--line);background:var(--paper)}
-label.me:has(input:checked){background:var(--signal-soft);border-color:var(--signal)}
 button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 section.panel{display:none;padding-top:18px}section.panel.on{display:block}
 /* schedule */
@@ -255,7 +253,6 @@ td.rowact .lock{margin-right:6px}
   <div class="right">
     <input type="search" id="q" placeholder="Search name, car, venue, flight" aria-label="Search">
     <div class="chips teamchips" id="teamPick" role="group" aria-label="Team">All Mil Ryobi</div>
-    <label class="me"><input type="checkbox" id="me"> Only my assignments</label>
     <button class="btn" id="xlsBtn">Export to Excel</button>
     <button class="btn ghost" id="refreshBtn" title="Fetch the latest shared data now">Refresh</button>
     <span class="sync" id="sync"><i></i>Loading…</span>
@@ -297,7 +294,7 @@ const M={
   f("date","Date","date",1,{req:1}),f("start","Start","time",1,{req:1}),f("end","End","time",1),f("status","Status","select",1,{opts:["Planned","Confirmed","Changed","Cancelled"]}),
   f("category","Category","text",2,{dl:"cat"}),f("activity","Activity / Task","text",2,{req:1}),f("origin","Origin","text",2,{dl:"place"}),f("destination","Destination","text",2,{dl:"place"}),
   f("venue","Venue","text",4,{dl:"place"}),f("pic","PIC / Owner","people",4),f("participants","Participants / Group","people",4,{groups:1}),f("vehicle","Vehicle","cars",4),
-  f("details","Details","text",2),f("team","Team","team",2,{hint:"Leave both unticked if it applies to everyone"}),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
+  f("details","Details","text",2),f("team","Team","team",2,{hint:"Tick both if it applies to both teams"}),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
  cars:{sheet:"Cars",noun:"car",idH:"Car",prefix:"Car ",manualId:true,fields:[
   f("plate","Plate","text",2,{req:1}),f("driver","Driver","person",2,{role:"Driver",fill:"driverPhone"}),f("driverPhone","Driver Phone","tel",2),f("pic","PIC","person",2,{role:"Car PIC",fill:"picPhone"}),f("picPhone","PIC Phone","tel",2)]},
  people:{sheet:"People",noun:"person",idH:"Person ID",prefix:"PER-",fields:[
@@ -308,7 +305,7 @@ const M={
  restaurants:{sheet:"Restaurants",noun:"meal",idH:"Restaurant ID",prefix:"RST-",fields:[
   f("date","Date","date",1,{req:1}),f("start","Start","time",1),f("meal","Meal","text",1,{dl:"meal"}),f("capacity","Capacity","text",1),
   f("place","Restaurant / Meal Location","text",4,{req:1,dl:"place"}),f("owner","Booking Owner","people",4),f("participants","Participants / Group","people",4,{groups:1}),
-  f("menu","Menu Summary","textarea",4),f("team","Team","team",2,{hint:"Leave both unticked if it applies to everyone"}),f("provider","Service Provider","text",2),f("map","Map / Link","url",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
+  f("menu","Menu Summary","textarea",4),f("team","Team","team",2,{hint:"Tick both if it applies to both teams"}),f("provider","Service Provider","text",2),f("map","Map / Link","url",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
 };
 const MODS=Object.keys(M);
 
@@ -318,9 +315,9 @@ MODS.forEach(m=>{STORE[m]=S.snap[m].map(x=>({...x}));DBDOCS[m]=null});
 function merge(m){ // snapshot first, shared store wins by id
   const map=new Map(S.snap[m].map(x=>[x.id,x]));(DBDOCS[m]||[]).forEach(x=>map.set(x.id,x));STORE[m]=[...map.values()];
 }
-let db=null,canWrite=false,tab="schedule",q="",me=false,role="All";
+let db=null,canWrite=false,tab="schedule",q="",role="All";
 const TEAMS=["Mil","Ryobi"];let team=(()=>{try{return TEAMS.includes(localStorage.getItem("thd-team"))?localStorage.getItem("thd-team"):"All"}catch(e){return "All"}})();
-const teamOk=r=>team==="All"||!("team" in r)||!r.team||list(r.team).includes(team); // untagged rows apply to everyone
+const teamOk=(r,m)=>team==="All"||!(m&&byF(m,"team"))||list(r.team).includes(team); // Mil/Ryobi show only rows tagged with that team; modules without a Team field are not filtered
 const teamBadges=v=>list(v).filter(t=>TEAMS.includes(t)).map(t=>`<span class="teambadge team-${t.toLowerCase()}">${t}</span>`).join("");
 const live=m=>STORE[m].filter(x=>!x.deleted);
 const EV=()=>live("events").sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)||a.seq-b.seq);
@@ -388,8 +385,8 @@ function buildFlags(){
 
 /* ---------- views ---------- */
 let V;
-const filt=rows=>rows.filter(r=>(!q||text(r).toLowerCase().includes(q))&&(!me||isMine(r))&&teamOk(r));
-const empty=()=>`<div class="empty">Nothing matches${q?` “${esc(q)}”`:""}${me?" in your assignments":""}. Clear the search or turn off “Only my assignments”.</div>`;
+const filt=(rows,m)=>rows.filter(r=>(!q||text(r).toLowerCase().includes(q))&&teamOk(r,m));
+const empty=()=>`<div class="empty">Nothing matches${q?` “${esc(q)}”`:""}${team!=="All"?` for ${esc(team)}`:""}. Clear the search or switch the team filter to All.</div>`;
 const addBtn=(m,lbl,extra="")=>canWrite?`<button class="btn ghost" data-add="${m}" ${extra}>${lbl}</button>`:"";
 const editBtn=(m,id,what)=>{if(!canWrite)return"";const b=busyBy(m,id);
   return (b.length?`<span class="lock" title="${esc(b.join(", "))} ${b.length>1?"have":"has"} this open in the editor right now">${esc(b[0])}${b.length>1?" +"+(b.length-1):""} editing</span>`:"")+
@@ -439,7 +436,7 @@ function evRow(e){
      ${editBtn("events",e.id,e.activity)}</div>`;
 }
 function schedule(){
-  const D=allDays(),cur=currentDay(),rowsAll=filt(EV());
+  const D=allDays(),cur=currentDay(),rowsAll=filt(EV(),"events");
   const cnt=d=>rowsAll.filter(e=>e.date===d).length;
   const nav=`<div class="daynav" role="tablist" aria-label="Choose a day">
     <button class="dchip" role="tab" aria-selected="${cur==="all"}" data-day-pick="all"><b>All days</b><span>${rowsAll.length}</span></button>
@@ -490,7 +487,7 @@ function mealCard(r){
     ${editBtn("restaurants",r.id,r.place)}</div>`;
 }
 function places(){
-  const R=filt(live("restaurants")).sort((a,b)=>((a.date||"")+(a.start||"")).localeCompare((b.date||"")+(b.start||""))),Vn=filt(live("venues"));
+  const R=filt(live("restaurants"),"restaurants").sort((a,b)=>((a.date||"")+(a.start||"")).localeCompare((b.date||"")+(b.start||""))),Vn=filt(live("venues"));
   const act=canWrite?"<th></th>":"";
   return bar("Meals",addBtn("restaurants","Add meal"))+(R.length?`<div class="day">${R.map(mealCard).join("")}</div>`:empty())+
   `<div style="height:22px"></div>`+bar("Venues",addBtn("venues","Add venue"))+(Vn.length?`<div class="tbl"><table><thead><tr><th>Venue</th><th>Type</th><th>Area</th><th>Contact</th><th>Use</th><th></th>${act}</tr></thead><tbody>`+
@@ -519,7 +516,6 @@ function render(){
 /* ---------- interactions ---------- */
 $("tabs").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
 $("q").oninput=e=>{q=e.target.value.trim().toLowerCase();render()};
-$("me").onchange=e=>{me=e.target.checked;render()};
 function teamRender(){$("teamPick").innerHTML=["All",...TEAMS].map(t=>`<button type="button" aria-pressed="${t===team}" data-team="${t}">${t}</button>`).join("")}
 teamRender();
 $("teamPick").onclick=e=>{const b=e.target.closest("button");if(!b)return;team=b.dataset.team;try{localStorage.setItem("thd-team",team)}catch(x){}teamRender();render()};

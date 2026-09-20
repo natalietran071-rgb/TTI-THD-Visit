@@ -16,7 +16,7 @@ Static `index.html` + Supabase for live shared data. No build step.
 - **Read**: anyone, via anon key + RLS select policy. Live updates via Supabase Realtime.
 - **Write**: only through RPC `thd_save(p_token, ...)`; the token's SHA-256 is checked against `thd_settings`.
   The anon key in `index.html` is public by design and cannot write without the edit code.
-- **Teams (Mil / Ryobi)**: events and meals have a *Team* tick box (leave both unticked for everyone). The **All / Mil / Ryobi** chips next to the search filter Schedule and Meals; untagged rows always show. Team tags are exported in a *Team* column. People → Company has quick chips for Mil / Ryobi and the participants picker can add everyone in Mil or Ryobi.
+- **Teams (Mil / Ryobi)**: events and meals have a *Team* tick box (tick both when it applies to both teams). The **All / Mil / Ryobi** chips next to the search filter Schedule and Meals to rows tagged with that team; untagged rows show only under **All**. Team tags are exported in a *Team* column. People → Company has quick chips for Mil / Ryobi and the participants picker can add everyone in Mil or Ryobi.
 - **Refresh**: data loads on open and streams live; the **Refresh** button re-fetches every collection on demand (also runs when the tab becomes visible again or the connection returns). The status line shows the last update time.
 - **Excel export**: in-browser with ExcelJS (5 original sheets + Cars + Change Log).
 - **Car trips** (Transportation sheet) are derived from each event's cars + each car's driver/PIC.
