@@ -6,7 +6,8 @@ Static `index.html` + Supabase for live shared data. No build step.
 ## Links
 | Mode | URL |
 |---|---|
-| View only (share with everyone) | `https://natalietran071-rgb.github.io/TTI-THD-Visit/` |
+| View only (share with everyone) | `https://tti-thd-visit.vercel.app/` |
+| GitHub Pages mirror (once Pages is enabled) | `https://natalietran071-rgb.github.io/TTI-THD-Visit/` |
 | Admin edit | same URL + `#edit=<code>` (code in `SECRETS.local.md`, never committed) |
 
 ## How it works
@@ -18,9 +19,13 @@ Static `index.html` + Supabase for live shared data. No build step.
 - **Excel export**: in-browser with ExcelJS (5 original sheets + Cars + Change Log).
 - **Car trips** (Transportation sheet) are derived from each event's cars + each car's driver/PIC.
 
-## Deploy (GitHub Pages)
+## Deploy
+**Vercel (primary)**: project `tti-thd-visit` in team `natalietran071-5454's projects`, imported from this repo.
+Preset *Other*, no build command, root `./`. Every push to `claude/practical-volta-ozx2y1` (the default branch) redeploys production.
+
+**GitHub Pages (optional mirror)**
 1. Repo: `natalietran071-rgb/TTI-THD-Visit` (public).
-2. Push `index.html`, `README.md`, `supabase/`, `.gitignore` to `main`.
+2. Push `index.html`, `README.md`, `supabase/`, `.gitignore` to the default branch.
 3. One-time: Settings → Pages → Source → **GitHub Actions**. Then Actions → “Deploy to GitHub Pages” → Re-run (or push any change).
    `.github/workflows/pages.yml` publishes `index.html` on every push after that.
 4. Open the view URL; header badge should say **View only** and status **Live, view only**.

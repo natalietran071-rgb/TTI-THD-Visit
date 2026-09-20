@@ -1,6 +1,6 @@
 # Instructions for Claude Code
 
-Goal: publish this folder to GitHub Pages so the run sheet is public without sign-in.
+Goal: keep the run sheet public without sign-in. Live at https://tti-thd-visit.vercel.app/ (Vercel, auto-deploys on push).
 
 Current state
 - Repo `natalietran071-rgb/TTI-THD-Visit` holds `index.html`, `README.md`, `supabase/`, `.gitignore`, `.github/workflows/pages.yml`.
