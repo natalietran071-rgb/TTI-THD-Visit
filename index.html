@@ -242,6 +242,19 @@ td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
 .quick{display:flex;gap:4px;margin-top:4px}
 .quick button{font:500 12px var(--sans);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:1px 8px;cursor:pointer;border-radius:10px}
 .quick button:hover{border-color:var(--ink)}
+/* venues: cards with map + photos */
+.venue .time{font:inherit}.venue .time small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px}
+.vact{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btn.sm{padding:4px 10px;font-size:13px}
+a.btn{text-decoration:none;display:inline-block;line-height:normal}
+.mapbox{margin-top:8px}.mapbox iframe{width:100%;height:280px;border:1px solid var(--line);display:block;background:var(--paper)}
+.photos{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.photos img{height:96px;width:auto;max-width:100%;border:1px solid var(--line);display:block;object-fit:cover}
+.photoed .thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.thumb{position:relative;display:inline-block}.thumb img{height:72px;width:auto;border:1px solid var(--line);display:block}
+.thumb button{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;border:1px solid var(--ink);background:var(--paper);color:var(--ink);font-size:13px;line-height:1;cursor:pointer;padding:0}
+.upl{display:flex;align-items:center;gap:10px}.upl label.busy{opacity:.6;pointer-events:none}
+@media (max-width:640px){.venue{grid-template-columns:1fr}.venue .time{margin-bottom:2px}.mapbox iframe{height:220px}.photos img{height:72px}}
 /* co-editing: who has the edit link open, record locks, field clashes */
 .who{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
 .who[hidden]{display:none}
@@ -290,7 +303,7 @@ td.rowact .lock{margin-right:6px}
 <div class="toast" id="toast" hidden role="status"></div>
 </div>
 <script>
-const S={"snap":{"events":[],"people":[],"venues":[],"restaurants":[],"cars":[]},"cols":{"People":["Person ID","Full Name","Company","Title","Event Role","Phone","Assigned Vehicle","Source","Review Status"],"Schedule":["Event ID","Date","Start","End","Category","Activity / Task","Origin","Destination","Venue","Participants / Group","Vehicle","PIC / Owner","Details","Source","Status","Review / Conflict","Team"],"Transportation":["Transport ID","Date","Start","Car","Plate","Driver","Driver Phone","PIC","PIC Phone","Origin","Destination","Passengers / Group","Purpose","Flight / Details","Source","Status","Review / Conflict"],"Venues":["Venue ID","Venue Name","Type","Area","Contact","Primary Use","Source","Map / Link","Review Status"],"Restaurants":["Restaurant ID","Date","Restaurant / Meal Location","Meal","Start","Capacity","Participants / Group","Booking Owner","Menu Summary","Service Provider","Map / Link","Source","Review / Conflict","Team"],"Cars":["Car","Plate","Driver","Driver Phone","PIC","PIC Phone"]}};
+const S={"snap":{"events":[],"people":[],"venues":[],"restaurants":[],"cars":[]},"cols":{"People":["Person ID","Full Name","Company","Title","Event Role","Phone","Assigned Vehicle","Source","Review Status"],"Schedule":["Event ID","Date","Start","End","Category","Activity / Task","Origin","Destination","Venue","Participants / Group","Vehicle","PIC / Owner","Details","Source","Status","Review / Conflict","Team"],"Transportation":["Transport ID","Date","Start","Car","Plate","Driver","Driver Phone","PIC","PIC Phone","Origin","Destination","Passengers / Group","Purpose","Flight / Details","Source","Status","Review / Conflict"],"Venues":["Venue ID","Venue Name","Type","Area","Contact","Primary Use","Source","Map / Link","Review Status","Photos"],"Restaurants":["Restaurant ID","Date","Restaurant / Meal Location","Meal","Start","Capacity","Participants / Group","Booking Owner","Menu Summary","Service Provider","Map / Link","Source","Review / Conflict","Team"],"Cars":["Car","Plate","Driver","Driver Phone","PIC","PIC Phone"]}};
 const ME="Natalie";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -299,6 +312,17 @@ const mins=s=>s?+s.slice(0,2)*60+ +s.slice(3,5):-1;
 const list=v=>(v||"").split(";").map(x=>x.trim()).filter(Boolean);
 const tel=p=>p?`<a href="tel:${p.replace(/[^\d+]/g,"")}">${esc(p)}</a>`:"";
 const link=u=>u?`<a href="${esc(u)}" target="_blank" rel="noopener">Map</a>`:"";
+/* maps: the Map field may hold a Google Maps link (incl. short links), an address, or "lat,lng".
+   Open = the user's link when given, else a Google Maps search; Embed = coordinates when known, else a search by text. */
+const isUrl=v=>/^https?:\/\//i.test((v||"").trim());
+const coordRe=/^\s*(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/;
+function mapQuery(x){const m=(x.map||"").trim();if(coordRe.test(m))return m.replace(/\s+/g,"");if(m&&!isUrl(m))return m;return [x.name||x.place,x.area].filter(Boolean).join(", ")}
+const mapOpenUrl=x=>{const m=(x.map||"").trim();return isUrl(m)?m:`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery(x))}`};
+function mapEmbedUrl(x){const m=(x.map||"").trim();let q=mapQuery(x);
+  if(isUrl(m)){const at=m.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/),qq=m.match(/[?&](?:q|query)=([^&]+)/);if(at)q=at[1]+","+at[2];else if(qq)q=decodeURIComponent(qq[1].replace(/\+/g," "))}
+  return `https://www.google.com/maps?q=${encodeURIComponent(q)}&z=15&output=embed`}
+const mapLink=x=>`<a href="${esc(mapOpenUrl(x))}" target="_blank" rel="noopener">Map</a>`;
+const OPENMAPS=new Set();
 const docId=id=>id.replace(/[^A-Za-z0-9_.~:@+-]/g,"_");
 const META=["orig","trn","added","deleted","updatedAt","seq"];
 const text=r=>Object.entries(r).filter(([k])=>!META.includes(k)).map(([,v])=>v).join(" ");
@@ -319,11 +343,11 @@ const M={
   f("name","Full Name","text",2,{req:1}),f("company","Company","text",1,{dl:"company",quick:["Mil","Ryobi"]}),f("phone","Phone","tel",1),f("title","Title","text",4),
   f("role","Event Role","text",4,{dl:"role",hint:"Separate several roles with ;"}),f("vehicle","Assigned Vehicle","cars",4),f("source","Source","text",2),f("review","Review Status","text",2)]},
  venues:{sheet:"Venues",noun:"venue",idH:"Venue ID",prefix:"VEN-",fields:[
-  f("name","Venue Name","text",2,{req:1}),f("type","Type","text",1,{dl:"vtype"}),f("area","Area","text",1,{dl:"area"}),f("use","Primary Use","text",2),f("contact","Contact","contact",4),f("map","Map / Link","url",4),f("source","Source","text",2),f("review","Review Status","text",2)]},
+  f("name","Venue Name","text",2,{req:1}),f("type","Type","text",1,{dl:"vtype"}),f("area","Area","text",1,{dl:"area"}),f("use","Primary Use","text",2),f("contact","Contact","contact",4),f("map","Map / Link","text",4,{hint:"Google Maps link, address, or lat,lng",dl:"none"}),f("photos","Photos","photos",4),f("source","Source","text",2),f("review","Review Status","text",2)]},
  restaurants:{sheet:"Restaurants",noun:"meal",idH:"Restaurant ID",prefix:"RST-",fields:[
   f("date","Date","date",1,{req:1}),f("start","Start","time",1),f("meal","Meal","text",1,{dl:"meal"}),f("capacity","Capacity","text",1),
   f("place","Restaurant / Meal Location","text",4,{req:1,dl:"place"}),f("owner","Booking Owner","people",4),f("participants","Participants / Group","people",4,{groups:1}),
-  f("menu","Menu Summary","textarea",4),f("team","Team","team",2,{hint:"Tick both if it applies to both teams"}),f("provider","Service Provider","text",2),f("map","Map / Link","url",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
+  f("menu","Menu Summary","textarea",4),f("team","Team","team",2,{hint:"Tick both if it applies to both teams"}),f("provider","Service Provider","text",2),f("map","Map / Link","text",2,{hint:"Google Maps link, address, or lat,lng"}),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
 };
 const MODS=Object.keys(M);
 
@@ -499,17 +523,27 @@ function mealCard(r){
      ${r.participants?`<dt>Who${n?` <span class="cnt">${n}</span>`:""}</dt><dd>${pchips(r.participants)}</dd>`:""}
      ${r.provider?`<dt>Provider</dt><dd>${esc(r.provider)}</dd>`:""}
      ${r.menu?`<dt>Menu</dt><dd class="menu">${esc(r.menu)}</dd>`:""}
-     ${r.map?`<dt>Map</dt><dd>${link(r.map)}</dd>`:""}
+     ${r.map?`<dt>Map</dt><dd>${mapLink(r)}</dd>`:""}
     </dl>
     ${r.review?`<div class="note">${esc(r.review)}</div>`:""}</div>
     ${editBtn("restaurants",r.id,r.place)}</div>`;
 }
 function places(){
   const R=filt(live("restaurants"),"restaurants").sort((a,b)=>((a.date||"")+(a.start||"")).localeCompare((b.date||"")+(b.start||""))),Vn=filt(live("venues"));
-  const act=canWrite?"<th></th>":"";
   return bar("Meals",addBtn("restaurants","Add meal"))+(R.length?`<div class="day">${R.map(mealCard).join("")}</div>`:empty())+
-  `<div style="height:22px"></div>`+bar("Venues",addBtn("venues","Add venue"))+(Vn.length?`<div class="tbl"><table><thead><tr><th>Venue</th><th>Type</th><th>Area</th><th>Contact</th><th>Use</th><th></th>${act}</tr></thead><tbody>`+
-   Vn.map(v=>{const c=contactParts(v.contact);return `<tr><td><b>${esc(v.name)}</b>${tagFor("venues",v)}${v.review&&v.review!=="OK"?`<div class="note">${esc(v.review)}</div>`:""}</td><td>${esc(v.type)}</td><td>${esc(v.area)}</td><td>${c.n?pchips(c.n)+(c.p?"<br>"+tel(c.p):""):""}</td><td>${esc(v.use)}</td><td>${link(v.map)}</td>${canWrite?`<td class="rowact">${editBtn("venues",v.id,v.name)}</td>`:""}</tr>`}).join("")+`</tbody></table></div>`:empty());
+  `<div style="height:22px"></div>`+bar("Venues",addBtn("venues","Add venue"))+(Vn.length?`<div class="day">${Vn.map(venueCard).join("")}</div>`:empty());
+}
+const mapFrame=v=>`<iframe src="${esc(mapEmbedUrl(v))}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Map of ${esc(v.name)}"></iframe>`;
+function venueCard(v){
+  const c=contactParts(v.contact),ph=list(v.photos),open=OPENMAPS.has(v.id);
+  return `<div class="ev venue" id="ven-${esc(v.id)}"><div class="time"><span class="cat">${esc(v.type||"Venue")}</span>${v.area?`<small>${esc(v.area)}</small>`:""}</div><div>
+   <h3>${esc(v.name)}${tagFor("venues",v)}</h3>
+   <dl class="kv">${v.use?`<dt>Use</dt><dd>${esc(v.use)}</dd>`:""}${c.n?`<dt>Contact</dt><dd>${pchips(c.n)}${c.p?" "+tel(c.p):""}</dd>`:""}</dl>
+   ${v.review&&v.review!=="OK"?`<div class="note">${esc(v.review)}</div>`:""}
+   <div class="vact"><a class="btn ghost sm" href="${esc(mapOpenUrl(v))}" target="_blank" rel="noopener">Open in Google Maps</a><button type="button" class="btn ghost sm" data-map="${esc(v.id)}" aria-expanded="${open}">${open?"Hide map":"Show map"}</button></div>
+   <div class="mapbox" id="map-${esc(v.id)}" ${open?"":"hidden"}>${open?mapFrame(v):""}</div>
+   ${ph.length?`<div class="photos">${ph.map(u=>`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="${esc(v.name)} photo" loading="lazy"></a>`).join("")}</div>`:""}
+  </div>${editBtn("venues",v.id,v.name)}</div>`;
 }
 function review(){
   const L=V.F.filter(x=>!q||text(x).toLowerCase().includes(q)),lab={high:"Fix first",med:"Confirm",low:"Tidy up"};
@@ -541,6 +575,9 @@ $("main").onclick=e=>{
   if(b.dataset.r){role=b.dataset.r;render()}
   else if("dayPick" in b.dataset){if(b.dataset.dayPick)setDay(b.dataset.dayPick)}
   else if(b.dataset.jump){const el=document.getElementById("ev-"+b.dataset.jump);if(el){el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1600)}}
+  else if(b.dataset.map){const v=STORE.venues.find(y=>y.id===b.dataset.map),box=$("map-"+b.dataset.map);if(!v||!box)return;
+    const open=box.hidden;if(open){OPENMAPS.add(v.id);if(!box.firstChild)box.innerHTML=mapFrame(v)}else OPENMAPS.delete(v.id);
+    box.hidden=!open;b.textContent=open?"Hide map":"Show map";b.setAttribute("aria-expanded",String(open))}
   else if(b.dataset.edit)openEditor(b.dataset.mod,STORE[b.dataset.mod].find(x=>x.id===b.dataset.edit));
   else if(b.dataset.add)openEditor(b.dataset.add,null,b.dataset.day);
   else if(b.dataset.restore){const m=b.dataset.mod,x=STORE[m].find(y=>y.id===b.dataset.restore);save(m,{...x,deleted:false},"Restored "+x.id)}
@@ -566,6 +603,8 @@ function fillLists(){
 }
 function fieldHtml(z,val){
   const id="f_"+z.k,sp=z.span===4?"s4":z.span===2?"s2":"";
+  if(z.t==="photos"){PH[z.k]=list(val);
+    return `<div class="${sp}"><div class="flabel">${esc(z.h)} <span class="hint">JPG, PNG or phone photos; resized to 1600px before upload</span></div><div class="photoed" id="${id}" data-k="${z.k}"><div class="thumbs"></div><div class="upl"><label class="btn ghost sm">Add photos<input type="file" accept="image/*" multiple hidden></label><span class="upmsg hint"></span></div></div></div>`}
   if(z.t==="team"){const cl=list(val);
     return `<div class="${sp}"><div class="flabel">${esc(z.h)}${z.hint?` <span class="hint">${esc(z.hint)}</span>`:""}</div><div class="carpick teampick" id="${id}">${TEAMS.map(t=>`<label class="team-${t.toLowerCase()}"><input type="checkbox" value="${t}" ${cl.includes(t)?"checked":""}>${t}</label>`).join("")}</div></div>`}
   if(z.t==="cars"){const C=CARS(),cl=list(val);
@@ -577,11 +616,31 @@ function fieldHtml(z,val){
   if(z.t==="textarea")return `<label class="${sp}">${esc(z.h)}${hint}<textarea id="${id}">${esc(val)}</textarea></label>`;
   const type={date:"date",time:"time",tel:"tel",url:"url"}[z.t]||"text";
   const quick=z.quick?`<div class="quick">${z.quick.map(v=>`<button type="button" data-quick="${esc(v)}" data-for="${id}">${esc(v)}</button>`).join("")}</div>`:"";
-  return `<label class="${sp}">${esc(z.h)}${req}${hint}<input id="${id}" type="${type}" value="${esc(val)}" ${z.dl?`list="dl_${z.dl}"`:""}>${quick}</label>`;
+  return `<label class="${sp}">${esc(z.h)}${req}${hint}<input id="${id}" type="${type}" value="${esc(val)}" ${z.dl&&z.dl!=="none"?`list="dl_${z.dl}"`:""}>${quick}</label>`;
 }
 const PFIELDS_T=["people","person","contact"];
 const GROUPS=[{l:"THD visitors",f:p=>p.company==="THD"},{l:"TTIVN executives",f:p=>p.company==="TTIVN"},{l:"Mil",f:p=>p.company==="Mil"},{l:"Ryobi",f:p=>p.company==="Ryobi"},{l:"Car PICs",f:p=>/Car PIC/.test(p.role)},{l:"Factory PICs",f:p=>/Factory PIC/.test(p.role)},{l:"Drivers",f:p=>/Driver/.test(p.role)}];
-let PK={};
+let PK={},PH={},UPL=0,SBC=null;
+function phRender(k){const el=document.querySelector(`.photoed[data-k="${k}"]`);if(!el)return;
+  el.querySelector(".thumbs").innerHTML=PH[k].map((u,i)=>`<span class="thumb"><a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt=""></a><button type="button" data-rm="${i}" aria-label="Remove photo">×</button></span>`).join("")}
+async function shrinkImage(file){ // longest side 1600px as JPEG; falls back to the original file when the browser can't decode it
+  try{const bmp=await createImageBitmap(file);const s=Math.min(1,1600/Math.max(bmp.width,bmp.height));const c=document.createElement("canvas");c.width=Math.max(1,Math.round(bmp.width*s));c.height=Math.max(1,Math.round(bmp.height*s));c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);bmp.close&&bmp.close();
+    const blob=await new Promise(r=>c.toBlob(r,"image/jpeg",0.82));if(blob)return {blob,ext:"jpg",type:"image/jpeg"}}catch(e){}
+  return {blob:file,ext:(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg",type:file.type||"application/octet-stream"}}
+async function uploadPhotos(k,files){
+  if(!SBC||!canWrite){toast("This is a view-only link.");return}
+  const el=document.querySelector(`.photoed[data-k="${k}"]`),msg=el.querySelector(".upmsg"),lbl=el.querySelector("label");let n=0;lbl.classList.add("busy");
+  for(const f of files){
+    if(!/^image\//.test(f.type)&&!/\.(heic|heif)$/i.test(f.name)){toast(`${f.name} is not an image.`);continue}
+    msg.textContent=`Uploading ${++n} of ${files.length}…`;UPL++;checkForm();
+    try{const {blob,ext,type}=await shrinkImage(f);const path=`venues/${docId(ed&&ed.x?ed.x.id:"new")}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+      const {error}=await SBC.storage.from("thd-photos").upload(path,blob,{contentType:type,upsert:false});
+      if(error)toast(`Couldn't upload ${f.name}. ${error.message||""}`.trim());
+      else{PH[k].push(SBC.storage.from("thd-photos").getPublicUrl(path).data.publicUrl);phRender(k)}}
+    catch(e){toast(`Couldn't upload ${f.name}.`)}
+    finally{UPL--;checkForm()}}
+  msg.textContent="";lbl.classList.remove("busy")}
+$("fgrid").addEventListener("change",e=>{const i=e.target;if(i.type==="file"&&i.closest(".photoed")){uploadPhotos(i.closest(".photoed").dataset.k,[...i.files]);i.value=""}});
 function pickerHtml(z,val,sp){
   PK[z.k]={z,vals:pvals(z,val),multi:z.t==="people",phone:z.t==="contact"?contactParts(val).p:"",hi:0,opts:[]};
   const hint=(z.t==="contact"||z.fill)?' <span class="hint">phone fills in from People</span>':'';
@@ -648,14 +707,14 @@ function initPickers(){
   });
 }
 
-function openEditor(m,x,day){PK={};
+function openEditor(m,x,day){PK={};PH={};UPL=0;
   const mod=M[m];ed={m,x};fillLists();
   $("dlgTitle").textContent=(x?"Edit ":"Add ")+mod.noun;$("dlgId").textContent=x?x.id:"";
   const v=x||Object.fromEntries(mod.fields.map(z=>[z.k,z.k==="date"?(day||"2026-09-21"):z.k==="status"?"Planned":""]));
   let html="";
   if(mod.manualId)html+=`<label class="s2">${esc(mod.idH)} *<input id="f__id" value="${esc(x?x.id:nextId(m))}" ${x?"disabled":""}></label>`;
   html+=mod.fields.map(z=>fieldHtml(z,v[z.k]??"")).join("");
-  $("fgrid").innerHTML=html;initPickers();
+  $("fgrid").innerHTML=html;initPickers();Object.keys(PH).forEach(phRender);
   $("dlgDel").hidden=!x;
   checkForm();if(!$("dlg").open)$("dlg").showModal();
   const first=$("fgrid").querySelector("input:not([disabled]),select,textarea");first&&first.focus();
@@ -664,7 +723,8 @@ function openEditor(m,x,day){PK={};
 function readForm(){
   const {m}=ed,o={};
   M[m].fields.forEach(z=>{
-    if(z.t==="team")o[z.k]=[...$("f_"+z.k).querySelectorAll("input:checked")].map(i=>i.value).join("; ");
+    if(z.t==="photos")o[z.k]=(PH[z.k]||[]).join("; ");
+    else if(z.t==="team")o[z.k]=[...$("f_"+z.k).querySelectorAll("input:checked")].map(i=>i.value).join("; ");
     else if(z.t==="cars"){const cs=[...$("f_"+z.k).querySelectorAll("input:checked")].map(i=>i.value),other=$("f_"+z.k+"_other").value.trim();o[z.k]=[...cs,...(other?[other]:[])].join("; ")}
     else if(PFIELDS_T.includes(z.t)){const s=PK[z.k];if(z.t==="contact"){const n=s.vals[0]||"";const p=findP(n);const ph=(p&&p.phone)||s.phone;o[z.k]=n?(ph?`${p?p.name:n} | ${ph}`:(p?p.name:n)):""}else o[z.k]=s.vals.map(v=>{const p=findP(v);return p?p.name:v}).join("; ")}
     else o[z.k]=$("f_"+z.k).value.trim()});
@@ -682,13 +742,15 @@ function checkForm(){
   if(m==="cars"&&x&&changeOf("cars",x)===null&&false);
   $("dlgWarn").textContent=w.join(" ");
   $("dlgMiss").textContent=miss.length?"Required: "+miss.join(", "):"";
+  if(UPL>0)miss.push("photos still uploading");
   $("dlgSave").disabled=!!miss.length||w.some(s=>s.endsWith("already exists."));
 }
 function nextId(m){
   const p=M[m].prefix,n=Math.max(0,...STORE[m].map(x=>parseInt(x.id.replace(/\D/g,""),10)||0))+1;
   return p+String(n).padStart(m==="cars"?2:3,"0");
 }
-$("fgrid").addEventListener("click",e=>{const b=e.target.closest("button[data-quick]");if(!b)return;e.preventDefault();const i=$(b.dataset.for);i.value=b.dataset.quick;i.dispatchEvent(new Event("input",{bubbles:true}));i.focus()});
+$("fgrid").addEventListener("click",e=>{const rm=e.target.closest(".photoed button[data-rm]");if(rm){const k=rm.closest(".photoed").dataset.k;PH[k].splice(+rm.dataset.rm,1);phRender(k);checkForm();return}
+  const b=e.target.closest("button[data-quick]");if(!b)return;e.preventDefault();const i=$(b.dataset.for);i.value=b.dataset.quick;i.dispatchEvent(new Event("input",{bubbles:true}));i.focus()});
 $("dlg").addEventListener("input",checkForm);
 $("dlg").addEventListener("change",checkForm);
 $("dlgCancel").onclick=()=>$("dlg").close();
@@ -736,7 +798,7 @@ async function save(m,doc,msg){
 }
 
 /* ---------- Excel export ---------- */
-const WID={People:[12,28,12,42,30,18,20,30,22],Schedule:[12,15.6,10,13,20,38,24,13,30,45,22,30,42,30,14,42,12],Transportation:[14,16.5,10,12,16,18,13,28,18,24,13,45,36,34,30,14,42],Venues:[12,34,20,24,38,13,30,48,30],Restaurants:[14,13,36,16,10,24,45,24,70,28,48,30,45,12],Cars:[10,24,18,16,30,16],"Change Log":[14,12,12,22,40,40,20]};
+const WID={People:[12,28,12,42,30,18,20,30,22],Schedule:[12,15.6,10,13,20,38,24,13,30,45,22,30,42,30,14,42,12],Transportation:[14,16.5,10,12,16,18,13,28,18,24,13,45,36,34,30,14,42],Venues:[12,34,20,24,38,13,30,48,30,60],Restaurants:[14,13,36,16,10,24,45,24,70,28,48,30,45,12],Cars:[10,24,18,16,30,16],"Change Log":[14,12,12,22,40,40,20]};
 const xDate=iso=>{if(!iso)return null;const[y,mo,d]=iso.split("-").map(Number);return new Date(Date.UTC(y,mo-1,d))};
 const xTime=s=>s&&/^\d\d:\d\d/.test(s)?mins(s)/1440:(s||null);
 function sheet(wb,name,cols,rows){
@@ -873,7 +935,7 @@ render();setSync("loading");
 (async()=>{
   if(!window.supabase){setSync("offline");toast("Couldn't reach the data service. Check your connection and reload.");return}
   const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});
-  db=makeDb(sb);
+  db=makeDb(sb);SBC=sb;
   if(EDIT_TOKEN){const {data,error}=await sb.rpc("thd_check_token",{p_token:EDIT_TOKEN});canWrite=!error&&data===true;if(!canWrite)toast("This edit link isn't valid. Showing view only.")}
   else canWrite=false;
   if(canWrite){WHO=getName();if(!WHO)askName();if(!WHO)setName("Editor");presenceStart(sb);whoRender()}

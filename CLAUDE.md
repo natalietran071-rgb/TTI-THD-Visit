@@ -13,5 +13,6 @@ Editing notes
 - All app code is in `index.html` (vanilla JS, no build). Supabase URL + anon key near the bottom (`SB_URL`, `SB_KEY`).
 - Module schema lives in the `M` object (events, cars, people, venues, restaurants); UI, editor, change log and Excel export are driven from it.
 - Co-editing: Supabase Realtime Presence on channel `thd-presence` (editors only). `PEERS` drives the `#who` bar, the `… editing` badges (`editBtn`) and `liveWarn()` in the dialog; `liveCheck()` flags a record changed underneath an open editor.
+- Venues: `venueCard()` + map helpers (`mapQuery`, `mapOpenUrl`, `mapEmbedUrl`); photos upload via `SBC.storage` to bucket `thd-photos` (policies in `supabase/schema.sql`), stored as a `; `-joined URL list in `photos`.
 - People fields use a tag picker linked to the People module by full name; renaming a person cascades to all modules.
 - Keep UI text in English; the owner (Natalie) prefers Vietnamese–English mix in chat, tables over prose.

@@ -43,3 +43,14 @@ do $$ begin
     alter publication supabase_realtime add table public.thd_records;
   end if;
 end $$;
+
+-- Venue photos: public bucket, anyone can read; uploads (anon key) only into the venues/ folder.
+-- Applied 2026-09-20. Files are never deleted by the app; removing a photo only unlinks it from the venue.
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('thd-photos','thd-photos', true, 10485760)
+on conflict (id) do update set public = true, file_size_limit = 10485760;
+drop policy if exists "thd photos read" on storage.objects;
+create policy "thd photos read" on storage.objects for select to anon, authenticated using (bucket_id = 'thd-photos');
+drop policy if exists "thd photos upload" on storage.objects;
+create policy "thd photos upload" on storage.objects for insert to anon, authenticated
+  with check (bucket_id = 'thd-photos' and (storage.foldername(name))[1] = 'venues');
