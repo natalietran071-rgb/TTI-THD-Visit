@@ -23,19 +23,6 @@ a{color:var(--road)}
 .wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
 header h1{font:700 clamp(30px,6vw,52px)/1 var(--cond);letter-spacing:-.01em;margin:0}
 header .sub{color:var(--muted);margin:8px 0 0;font-size:16px}
-.strip{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:14px 0 0;border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
-.strip div{padding:6px 16px 6px 0;margin-right:16px;border-right:1px solid var(--line)}
-.strip div:last-child{border-right:0}
-.strip b{font:600 19px/1.1 var(--cond);display:block}
-.strip span{color:var(--muted);font-size:12px}
-.strip .warn b{color:var(--flag)}
-/* secondary counters: flags and change count, small and muted at the right end */
-.strip .minor{border-right:0;padding:4px 0;margin-right:14px;color:var(--muted);font-size:12px}
-.strip .minor:first-of-type{margin-left:0}
-.strip .minor.first{margin-left:auto}
-.strip .minor b{display:inline;font:600 13px var(--cond);color:var(--ink);margin-right:4px}
-.strip .minor.warn b{color:var(--flag)}
-@media (max-width:640px){.strip .minor.first{margin-left:0}}
 .controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 0 10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-bottom:1px solid var(--line)}
 .tabs{display:flex;gap:2px;flex-wrap:wrap}
 .tabs button{font:600 15px var(--cond);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;cursor:pointer}
@@ -93,7 +80,38 @@ h2.sec{font:700 22px var(--cond);margin:26px 0 10px}
 .flags .ref{color:var(--muted);font-size:12.5px}
 .empty{padding:30px;text-align:center;color:var(--muted)}
 footer{margin-top:40px;color:var(--muted);font-size:12.5px}
-@media (max-width:640px){.dtitle .dl-long{display:none}.dtitle .dl-short{display:inline}.dtitle h2{font-size:20px!important;white-space:nowrap}.controls{position:static}.ev{grid-template-columns:78px 1fr;gap:0 10px}.time{font-size:17px}.right{margin-left:0;width:100%}input[type=search]{flex:1;min-width:0}.flags li{grid-template-columns:1fr}.cars{grid-template-columns:1fr}.strip div{padding-right:14px;margin-right:14px}}
+/* phone layout: one scrolling tab row, full-width search, tighter cards */
+@media (max-width:640px){
+ .wrap{padding:16px 14px 40px}
+ header .sub{font-size:13.5px;margin-top:4px}
+ .mode{font-size:11.5px;padding:1px 7px;margin-left:6px}
+ .controls{position:static;padding:10px 0 8px;gap:8px}
+ .tabs{flex-wrap:nowrap;overflow-x:auto;width:100%;gap:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .tabs::-webkit-scrollbar{display:none}
+ .tabs button{flex:0 0 auto;font-size:14px;padding:7px 11px}
+ .right{margin-left:0;width:100%;gap:6px}
+ input[type=search]{flex:1 1 100%;min-width:0;padding:8px 10px}
+ .btn{font-size:13px;padding:7px 10px}
+ .sync{width:100%;font-size:12px}
+ .who{font-size:12px}
+ .dtitle .dl-long{display:none}.dtitle .dl-short{display:inline}.dtitle h2{font-size:20px!important;white-space:nowrap}
+ .dchip{min-width:58px;padding:5px 9px}.dchip b{font-size:15px}.dchip span{font-size:11px}
+ .dsum div{padding:6px 12px 6px 0;margin-right:12px}.dsum dd{font-size:16px}
+ .ev{grid-template-columns:62px 1fr;gap:0 10px;padding:10px 0}
+ .time{font-size:16px}.time small{font-size:12px}
+ .ev h3{font-size:15px;padding-right:52px}
+ .ev>div:nth-child(2){padding-right:0}
+ .ev .edit{top:8px;padding:2px 8px;font-size:12.5px}
+ .ev .lock{top:34px;font-size:11px}
+ .cat{font-size:11px;margin-right:4px}
+ .route{font-size:13px}
+ .pchip{font-size:13px}
+ .flags li{grid-template-columns:1fr}.cars{grid-template-columns:1fr}
+ .bar{flex-wrap:wrap}
+ .teamchips{width:100%}
+ .right .btn{flex:1 1 40%}
+ .dsum,footer{display:none}
+}
 
 .btn{font:600 14px var(--cond);border:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:8px 14px;cursor:pointer}
 .btn.ghost{background:var(--paper);color:var(--ink);border-color:var(--line)}
@@ -246,7 +264,6 @@ td.rowact .lock{margin-right:6px}
 <header>
   <h1>THD Visit Vietnam <span class="mode view" id="modeBadge">View only</span></h1>
   <p class="sub">Run sheet for the Home Depot executive visit, Sunday 20 to Friday 25 September 2026. Base hotel: JW Marriott.</p>
-  <div class="strip" id="strip"></div>
 </header>
 <div class="controls">
   <div class="tabs" role="tablist" id="tabs"></div>
@@ -504,10 +521,8 @@ function review(){
 }
 function render(){
   V=buildFlags();
-  const ch=MODS.reduce((n,m)=>n+STORE[m].filter(x=>changeOf(m,x)).length,0);
-  $("strip").innerHTML=[["6","days, 20–25 Sep"],[live("people").filter(p=>p.role.includes("VIP")).length,"VIP visitors"],[EV().length,"scheduled events"],[V.T.length,`car trips, ${Object.keys(CARS()).length} cars`],[V.F.filter(x=>x.sev==="high").length+" / "+V.F.length,"high-priority / all flags","minor first"+(V.F.some(x=>x.sev==="high")?" warn":"")],...(ch?[[ch,"changes since import","minor"]]:[])]
-   .map(([b,s,c])=>`<div class="${c||""}"><b>${b}</b><span>${s}</span></div>`).join("");
-  const T=[["schedule","Schedule",EV().length],["cars","Cars & drivers",Object.keys(CARS()).length],["people","People",live("people").length],["places","Venues & meals",live("venues").length+live("restaurants").length],["review","Needs review",V.F.length]];
+  if(tab==="review"&&!canWrite)tab="schedule";
+  const T=[["schedule","Schedule",EV().length],["cars","Cars & drivers",Object.keys(CARS()).length],["people","People",live("people").length],["places","Venues & meals",live("venues").length+live("restaurants").length],...(canWrite?[["review","Needs review",V.F.length]]:[])];
   $("tabs").innerHTML=T.map(([id,l,n])=>`<button role="tab" aria-selected="${id===tab}" data-t="${id}">${l}<span class="n">${n}</span></button>`).join("");
   $("main").innerHTML=`<section class="panel on">${({schedule,cars,people,places,review})[tab]()}</section>`;
   const sel=document.querySelector('.dchip[aria-selected="true"]');if(sel){const n=sel.parentElement;n.scrollLeft=sel.offsetLeft-n.offsetLeft-12}
