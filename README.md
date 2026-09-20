@@ -16,6 +16,7 @@ Static `index.html` + Supabase for live shared data. No build step.
 - **Read**: anyone, via anon key + RLS select policy. Live updates via Supabase Realtime.
 - **Write**: only through RPC `thd_save(p_token, ...)`; the token's SHA-256 is checked against `thd_settings`.
   The anon key in `index.html` is public by design and cannot write without the edit code.
+- **Refresh**: data loads on open and streams live; the **Refresh** button re-fetches every collection on demand (also runs when the tab becomes visible again or the connection returns). The status line shows the last update time.
 - **Excel export**: in-browser with ExcelJS (5 original sheets + Cars + Change Log).
 - **Car trips** (Transportation sheet) are derived from each event's cars + each car's driver/PIC.
 

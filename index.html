@@ -239,6 +239,7 @@ td.rowact .lock{margin-right:6px}
     <input type="search" id="q" placeholder="Search name, car, venue, flight" aria-label="Search">
     <label class="me"><input type="checkbox" id="me"> Only my assignments</label>
     <button class="btn" id="xlsBtn">Export to Excel</button>
+    <button class="btn ghost" id="refreshBtn" title="Fetch the latest shared data now">Refresh</button>
     <span class="sync" id="sync"><i></i>Loading…</span>
     <span class="who" id="who" hidden></span>
   </div>
@@ -800,7 +801,8 @@ function makeDb(sb){
     onSnapshot(cb,errcb){
       const map=new Map();
       const emit=()=>cb({empty:!map.size,docs:[...map.values()].map(d=>({id:d.id,exists:true,data:()=>JSON.parse(JSON.stringify(d))}))});
-      const load=()=>sb.from("thd_records").select("id,data").eq("collection",m).then(({data,error})=>{if(error){errcb&&errcb(error);return}data.forEach(r=>map.set(r.id,r.data));emit()});
+      const load=()=>sb.from("thd_records").select("id,data").eq("collection",m).then(({data,error})=>{if(error){errcb&&errcb(error);return false}data.forEach(r=>map.set(r.id,r.data));emit();return true});
+      LOADERS.push(load);
       sb.channel("thd-"+m).on("postgres_changes",{event:"*",schema:"public",table:"thd_records",filter:"collection=eq."+m},p=>{if(p.new&&p.new.id){map.set(p.new.id,p.new.data);emit()}})
         .subscribe(st=>{if(st==="SUBSCRIBED")load();else if(st==="CHANNEL_ERROR"||st==="TIMED_OUT"){load()}});
       document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")load()});
@@ -812,7 +814,19 @@ function makeDb(sb){
     }})
   })};
 }
-function setSync(state){const s=$("sync");s.className="sync"+(state==="live"?" live":"");s.lastChild.textContent=state==="live"?(canWrite?"Live, edit mode":"Live, view only"):state==="offline"?"Offline, showing last loaded copy":"Loading…";
+const LOADERS=[];let lastSync=null;
+const hhmm=d=>d.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"});
+async function refreshAll(){ // Refresh button, tab becomes visible again, connection comes back
+  const b=$("refreshBtn");if(!db||!LOADERS.length){toast("Not connected yet. Reload the page.");return}if(b.disabled)return;
+  b.disabled=true;b.textContent="Refreshing…";
+  try{const ok=await Promise.all(LOADERS.map(f=>f()));if(ok.every(Boolean)){lastSync=new Date();setSync("live");toast("Up to date.")}else toast("Couldn't refresh everything. Check your connection and try again.")}
+  catch(e){toast("Couldn't refresh. Check your connection and try again.")}
+  finally{b.disabled=false;b.textContent="Refresh"}
+}
+$("refreshBtn").onclick=refreshAll;
+window.addEventListener("online",()=>refreshAll());
+window.addEventListener("pageshow",e=>{if(e.persisted)refreshAll()});
+function setSync(state){const s=$("sync");s.className="sync"+(state==="live"?" live":"");s.lastChild.textContent=(state==="live"?(canWrite?"Live, edit mode":"Live, view only"):state==="offline"?"Offline, showing last loaded copy":"Loading…")+(lastSync?` · updated ${hhmm(lastSync)}`:"");
   const b=$("modeBadge");if(b){b.textContent=canWrite?"Edit link":"View only";b.className="mode "+(canWrite?"edit":"view")}}
 render();setSync("loading");
 (async()=>{
@@ -827,7 +841,7 @@ render();setSync("loading");
     if(!e0){const got=new Set(have.map(r=>r.collection+"|"+r.id));const miss=MODS.flatMap(m=>S.snap[m].filter(x=>!got.has(m+"|"+x.id)).map(x=>[m,x]));
       if(have.length===0&&miss.length){toast("Setting up shared data…");for(const [m,x] of miss){await sb.rpc("thd_save",{p_token:EDIT_TOKEN,p_collection:m,p_id:x.id,p_data:x})}toast("Shared data is ready.")}}}
   let lost=false;
-  MODS.forEach(m=>db.collection(m).onSnapshot(snap=>{lost=false;DBDOCS[m]=snap.docs.map(x=>x.data());merge(m);setSync("live");if(!$("dlg").open)render();else{V=buildFlags();liveCheck(m)}},
+  MODS.forEach(m=>db.collection(m).onSnapshot(snap=>{lost=false;lastSync=new Date();DBDOCS[m]=snap.docs.map(x=>x.data());merge(m);setSync("live");if(!$("dlg").open)render();else{V=buildFlags();liveCheck(m)}},
     err=>{if(!lost){lost=true;setSync("offline");toast("Lost connection to the shared data. Reload to reconnect.")}}));
 })();
 
