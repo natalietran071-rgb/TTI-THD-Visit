@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>THD Visit Vietnam – Run Sheet, 20–25 Sep 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<meta name="robots" content="noindex, nofollow">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#F3F4F1;--paper:#FFFFFF;--ink:#1B2433;--muted:#5D6675;--line:#DCDFE3;--road:#2E4A6B;--signal:#E8A317;--signal-soft:#FDF1D6;--flag:#B63A2B;--flag-soft:#F8E3DF;
+--c1:#2E4A6B;--c2:#8A5A00;--c3:#2F6B4F;--c4:#6B3F7A;--c5:#8C3B2E;--c6:#3F5F66;
+--cond:"IBM Plex Sans Condensed","Arial Narrow",system-ui,sans-serif;--sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161D;--paper:#1A2029;--ink:#E7EAEE;--muted:#9AA3AF;--line:#2C3440;--road:#8FB2D8;--signal:#F0B43A;--signal-soft:#3A2F14;--flag:#F08070;--flag-soft:#3A1F1B;--c1:#8FB2D8;--c2:#E0B25A;--c3:#7FC3A0;--c4:#C9A0D6;--c5:#E8988B;--c6:#93BCC4}}
+:root[data-theme="dark"]{--bg:#12161D;--paper:#1A2029;--ink:#E7EAEE;--muted:#9AA3AF;--line:#2C3440;--road:#8FB2D8;--signal:#F0B43A;--signal-soft:#3A2F14;--flag:#F08070;--flag-soft:#3A1F1B;--c1:#8FB2D8;--c2:#E0B25A;--c3:#7FC3A0;--c4:#C9A0D6;--c5:#E8988B;--c6:#93BCC4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans)}
+a{color:var(--road)}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 60px}
+header h1{font:700 clamp(30px,6vw,52px)/1 var(--cond);letter-spacing:-.01em;margin:0}
+header .sub{color:var(--muted);margin:8px 0 0;font-size:16px}
+.strip{display:flex;flex-wrap:wrap;gap:0;margin:22px 0 0;border-top:3px solid var(--ink);border-bottom:1px solid var(--line)}
+.strip div{padding:10px 22px 10px 0;margin-right:22px;border-right:1px solid var(--line)}
+.strip div:last-child{border-right:0}
+.strip b{font:600 26px/1.1 var(--cond);display:block}
+.strip span{color:var(--muted);font-size:13px}
+.strip .warn b{color:var(--flag)}
+.controls{position:sticky;top:0;z-index:5;background:var(--bg);padding:14px 0 10px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:2px;flex-wrap:wrap}
+.tabs button{font:600 15px var(--cond);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tabs button .n{font-weight:500;opacity:.7;margin-left:4px}
+.right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=search]{font:inherit;padding:8px 12px;border:1px solid var(--line);background:var(--paper);color:var(--ink);min-width:220px}
+label.me{display:flex;align-items:center;gap:6px;font-size:14px;cursor:pointer;padding:7px 10px;border:1px solid var(--line);background:var(--paper)}
+label.me:has(input:checked){background:var(--signal-soft);border-color:var(--signal)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+section.panel{display:none;padding-top:18px}section.panel.on{display:block}
+/* schedule */
+.day{margin:0 0 30px}
+.dayhead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);padding-bottom:4px;margin-bottom:0}
+.dayhead h2{font:700 24px var(--cond);margin:0}
+.dayhead span{color:var(--muted);font-size:13px}
+.ev{display:grid;grid-template-columns:118px 1fr;gap:0 18px;padding:12px 0;border-bottom:1px solid var(--line);position:relative}
+.ev.mine{background:linear-gradient(90deg,var(--signal-soft),transparent 70%)}
+.ev.mine::before{content:"";position:absolute;left:-12px;top:0;bottom:0;width:4px;background:var(--signal)}
+.time{font:600 20px/1.15 var(--cond)}
+.time small{display:block;font:500 13px var(--sans);color:var(--muted)}
+.ev h3{margin:0;font-size:16px;font-weight:600}
+.cat{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--line);padding:0 6px;margin-right:6px;vertical-align:2px;background:var(--paper)}
+.route{color:var(--road);font-size:14px;margin-top:2px}
+.meta{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13.5px;color:var(--muted);margin-top:6px}
+.meta b{color:var(--ink);font-weight:500}
+.car{display:inline-block;white-space:nowrap;font:600 12.5px var(--cond);padding:1px 7px;color:#fff;margin-right:3px;border-radius:2px}
+.note{margin-top:6px;font-size:13px;color:var(--flag);background:var(--flag-soft);padding:3px 8px;display:inline-block}
+/* cars */
+.cars{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px}
+.carbox{background:var(--paper);border:1px solid var(--line);border-top:6px solid var(--cc)}
+.carbox header{padding:12px 14px;border-bottom:1px solid var(--line)}
+.carbox h3{font:700 22px var(--cond);margin:0;color:var(--cc)}
+.carbox .plate{font:600 14px var(--cond);color:var(--ink);border:1.5px solid var(--ink);padding:0 6px;margin-left:8px;vertical-align:4px}
+.crew{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13.5px;margin-top:8px}
+.crew dt{color:var(--muted)}.crew dd{margin:0}
+.trip{display:grid;grid-template-columns:86px 1fr;gap:8px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:14px}
+.trip:last-child{border-bottom:0}
+.trip .t{font:600 15px/1.2 var(--cond)}.trip .t small{display:block;font:400 12px var(--sans);color:var(--muted)}
+.trip .who{color:var(--muted);font-size:13px}
+.trip.clash{background:var(--flag-soft)}
+/* tables */
+.tbl{overflow-x:auto;background:var(--paper);border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font:600 14px var(--cond);text-align:left;padding:9px 10px;border-bottom:2px solid var(--ink);white-space:nowrap;position:sticky;top:0;background:var(--paper)}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.mine td{background:var(--signal-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.chips button{font:500 13px var(--sans);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:4px 10px;cursor:pointer}
+.chips button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+h2.sec{font:700 22px var(--cond);margin:26px 0 10px}
+.flags{list-style:none;padding:0;margin:0;background:var(--paper);border:1px solid var(--line)}
+.flags li{padding:10px 14px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:130px 1fr;gap:12px}
+.flags li:last-child{border-bottom:0}
+.sev{font:600 13px var(--cond);padding:1px 8px;align-self:start;justify-self:start}
+.sev.high{background:var(--flag);color:#fff}.sev.med{background:var(--signal);color:#1B2433}.sev.low{border:1px solid var(--line);color:var(--muted)}
+.flags .ref{color:var(--muted);font-size:12.5px}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+footer{margin-top:40px;color:var(--muted);font-size:12.5px}
+@media (max-width:640px){.dtitle .dl-long{display:none}.dtitle .dl-short{display:inline}.dtitle h2{font-size:20px!important;white-space:nowrap}.controls{position:static}.ev{grid-template-columns:78px 1fr;gap:0 10px}.time{font-size:17px}.right{margin-left:0;width:100%}input[type=search]{flex:1;min-width:0}.flags li{grid-template-columns:1fr}.cars{grid-template-columns:1fr}.strip div{padding-right:14px;margin-right:14px}}
+
+.btn{font:600 14px var(--cond);border:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:8px 14px;cursor:pointer}
+.btn.ghost{background:var(--paper);color:var(--ink);border-color:var(--line)}
+.btn.danger{background:var(--paper);color:var(--flag);border-color:var(--flag)}
+.btn:disabled{opacity:.5;cursor:default}
+.sync{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--muted);display:inline-block}
+.sync.live i{background:#2F8F5B}
+.ev .edit{position:absolute;right:0;top:10px;font:500 13px var(--sans);background:none;border:1px solid var(--line);color:var(--muted);padding:2px 10px;cursor:pointer}
+.ev .edit:hover{color:var(--ink);border-color:var(--ink)}
+.ev>div:nth-child(2){padding-right:56px}
+.tag{font:600 11.5px var(--cond);padding:0 6px;margin-left:6px;vertical-align:2px}
+.tag.new{background:#2F8F5B;color:#fff}.tag.chg{background:var(--signal);color:#1B2433}.tag.cxl{background:var(--muted);color:#fff}
+.ev.cancelled h3{text-decoration:line-through;color:var(--muted)}
+.dayhead .add{margin-left:auto;font:500 13px var(--sans);background:none;border:0;color:var(--road);cursor:pointer;padding:2px 0}
+dialog{border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:0;width:min(720px,calc(100vw - 24px));max-height:calc(100dvh - 32px)}
+dialog::backdrop{background:rgba(15,20,30,.45)}
+.dlg-h{display:flex;align-items:baseline;gap:10px;padding:16px 20px;border-bottom:2px solid var(--ink)}
+.dlg-h h2{font:700 22px var(--cond);margin:0}.dlg-h span{color:var(--muted);font-size:13px}
+.fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 14px;padding:16px 20px}
+.fgrid label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted)}
+.fgrid .s2{grid-column:span 2}.fgrid .s4{grid-column:1/-1}
+.fgrid input,.fgrid select,.fgrid textarea{font:15px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:7px 9px;width:100%}
+.fgrid textarea{min-height:56px;resize:vertical}
+.carpick{display:flex;flex-wrap:wrap;gap:6px}
+.carpick label{flex-direction:row;align-items:center;gap:6px;border:1px solid var(--line);padding:5px 9px;cursor:pointer;color:var(--ink);font-size:13.5px;background:var(--bg)}
+.carpick label:has(input:checked){border-color:var(--cc);box-shadow:inset 0 -3px 0 var(--cc)}
+.carpick input{width:auto}
+.warnbox{margin:0 20px;padding:8px 12px;background:var(--flag-soft);color:var(--flag);font-size:13.5px}
+.warnbox:empty{display:none}
+.dlg-f{display:flex;gap:8px;padding:14px 20px;border-top:1px solid var(--line);position:sticky;bottom:0;background:var(--paper)}
+.dlg-f .sp{flex:1}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;font-size:14px;z-index:50;max-width:90vw}
+.toast[hidden]{display:none}
+.chg{list-style:none;padding:0;margin:0;background:var(--paper);border:1px solid var(--line)}
+.chg li{padding:10px 14px;border-bottom:1px solid var(--line);font-size:14px}
+.chg li:last-child{border-bottom:0}
+.chg .diff{color:var(--muted);font-size:13px;margin-top:2px}
+.chg del{color:var(--flag)}.chg ins{color:#2F8F5B;text-decoration:none}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px}
+.bar .btn{padding:6px 12px}
+.flabel{font-size:12.5px;color:var(--muted);margin-bottom:4px}
+.hint{color:var(--muted);opacity:.8;font-size:11.5px}
+.miss{margin:0 20px;font-size:13px;color:var(--muted)}.miss:empty{display:none}
+td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
+.carbox header .edit{position:absolute;right:12px;top:14px;font:500 13px var(--sans);background:none;border:1px solid var(--line);color:var(--muted);padding:2px 10px;cursor:pointer}
+.edit{font:500 13px var(--sans);background:none;border:1px solid var(--line);color:var(--muted);padding:2px 10px;cursor:pointer}
+
+.daynav{display:flex;gap:6px;overflow-x:auto;padding:2px 0 14px;margin-bottom:6px;scrollbar-width:thin}
+.dchip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;min-width:74px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:6px 12px;cursor:pointer;text-align:left}
+.dchip b{font:600 17px/1.1 var(--cond)}.dchip span{font-size:12px;color:var(--muted)}
+.dchip.today{border-color:var(--signal)}
+.dchip[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}.dchip[aria-selected="true"] span{color:var(--bg);opacity:.75}
+.dtitle{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-width:0}.dl-short{display:none}
+.step{font:600 22px/1 var(--cond);width:34px;height:34px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.step:disabled{opacity:.35;cursor:default}
+.todaytag{font:600 12.5px var(--cond);background:var(--signal);color:#1B2433;padding:1px 8px}
+.linkish{font:inherit;background:none;border:0;padding:0;color:inherit;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:4px}
+.linkish:hover{text-decoration-color:var(--ink)}
+.dsum{display:flex;flex-wrap:wrap;gap:0;margin:0 0 14px;border-top:2px solid var(--ink);border-bottom:1px solid var(--line)}
+.dsum div{padding:8px 18px 8px 0;margin-right:18px;border-right:1px solid var(--line)}.dsum div:last-child{border-right:0}
+.dsum dt{font-size:12.5px;color:var(--muted)}.dsum dd{margin:0;font:600 19px/1.3 var(--cond)}.dsum .bad dd{color:var(--flag)}
+.tl{background:var(--paper);border:1px solid var(--line);padding:8px 12px 10px;margin-bottom:18px;overflow-x:auto}
+.tl-axis,.tl-body{position:relative;min-width:680px}
+.tl-axis{height:18px}
+.tick{position:absolute;transform:translateX(-50%);font:500 12px var(--cond);color:var(--muted);white-space:nowrap}
+.tick:first-child{transform:none}.tick:last-child{transform:translateX(-100%)}
+.tl-body{height:calc(var(--lanes) * 34px + 8px)}
+.grid{position:absolute;top:0;bottom:0;width:1px;background:var(--line)}
+.now{position:absolute;top:-4px;bottom:0;width:2px;background:var(--flag);z-index:2}
+.blk{position:absolute;height:30px;border:0;border-left:4px solid var(--kc);background:color-mix(in srgb,var(--kc) 16%,var(--paper));color:var(--ink);font:13px/30px var(--sans);text-align:left;padding:0 6px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
+.blk b{font:600 13px var(--cond)}
+.blk:hover{background:color-mix(in srgb,var(--kc) 30%,var(--paper))}
+.blk.mine{box-shadow:inset 0 -3px 0 var(--signal)}
+.blk.cx{opacity:.45;text-decoration:line-through}
+.k-move{--kc:var(--c1)}.k-visit{--kc:var(--c3)}.k-meal{--kc:var(--c2)}.k-other{--kc:var(--c6)}
+.tl-key{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px;font-size:12.5px;color:var(--muted)}
+.tl-key span::before{content:"";display:inline-block;width:10px;height:10px;background:var(--kc);margin-right:5px;vertical-align:-1px}
+.tl-key .k-mine::before{background:var(--signal)}
+.ev.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%{background:var(--signal-soft)}100%{background:transparent}}
+@media (prefers-reduced-motion:reduce){.ev.flash{animation:none;outline:2px solid var(--signal)}}
+
+.kv{display:grid;grid-template-columns:76px 1fr;gap:6px 10px;margin:8px 0 0;font-size:14px}
+.kv dt{color:var(--muted);font-size:12.5px;padding-top:4px}
+.kv dd{margin:0;display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:0}
+.kv dd.menu{display:block;color:var(--ink);font-size:13.5px}
+.cnt{display:inline-block;min-width:18px;text-align:center;font:600 11.5px/16px var(--cond);background:var(--line);color:var(--ink);border-radius:8px;padding:0 4px}
+.pchip{display:inline-flex;align-items:baseline;gap:5px;font:500 13.5px/1.35 var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:2px 8px;border-radius:12px;cursor:pointer;text-align:left;max-width:100%;white-space:normal}
+.pchip small{font-size:11px;color:var(--muted);font-weight:500}
+.pchip:hover{border-color:var(--ink)}
+.pchip.label{background:transparent;border-style:dashed;color:var(--muted);cursor:default}
+.pchip.sm{font-size:12.5px;padding:1px 7px}
+.chipline{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.car small{font:500 11px var(--sans);opacity:.85;margin-left:5px}
+.ev.meal .time small{white-space:nowrap}
+.crew dd{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.pp{position:relative}
+.pp-box{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:38px;padding:4px 6px;border:1px solid var(--line);background:var(--bg);cursor:text}
+.pp-box:focus-within{outline:2px solid var(--signal);outline-offset:1px}
+.pp-tags{display:contents}
+.pp-tag{display:inline-flex;align-items:center;gap:2px;font-size:13.5px;background:var(--paper);border:1px solid var(--ink);color:var(--ink);padding:1px 2px 1px 8px;border-radius:12px}
+.pp-tag.label{border-style:dashed;border-color:var(--muted);color:var(--muted)}
+.pp-tag button{border:0;background:none;color:inherit;font-size:15px;line-height:1;padding:2px 6px;cursor:pointer;border-radius:10px}
+.pp-tag button:hover{background:var(--line)}
+.fgrid .pp-in{flex:1 1 140px;min-width:120px;border:0;background:transparent;padding:5px 4px;outline:none}
+.pp-menu{position:absolute;left:0;right:0;z-index:20;margin-top:2px;background:var(--paper);border:1px solid var(--ink);max-height:260px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.pp-opt{display:flex;justify-content:space-between;gap:12px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font:14px var(--sans);padding:8px 10px;cursor:pointer}
+.pp-opt small{color:var(--muted);font-size:12px;text-align:right}
+.pp-opt[aria-selected="true"]{background:var(--signal-soft)}
+.pp-opt.alt{color:var(--road)}
+.pp-groups{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:6px;font-size:12.5px;color:var(--muted)}
+.pp-groups span{margin-right:2px}
+.pp-groups button{font:500 12.5px var(--sans);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:2px 8px;cursor:pointer;border-radius:12px}
+.pp-groups button:hover{border-color:var(--ink)}
+@media (max-width:640px){.kv{grid-template-columns:1fr;gap:2px}.kv dt{padding-top:6px}}
+@media (max-width:640px){.fgrid{grid-template-columns:1fr 1fr}.fgrid .s2{grid-column:1/-1}}
+.mode{display:inline-block;vertical-align:middle;font:600 13px var(--cond);padding:2px 10px;margin-left:8px;letter-spacing:.02em}.mode.view{border:1px solid var(--line);color:var(--muted)}.mode.edit{background:var(--signal);color:#1B2433}
+@media print{.controls{position:static}.ev.mine::before{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>THD Visit Vietnam <span class="mode view" id="modeBadge">View only</span></h1>
+  <p class="sub">Run sheet for the Home Depot executive visit, Sunday 20 to Friday 25 September 2026. Base hotel: JW Marriott.</p>
+  <div class="strip" id="strip"></div>
+</header>
+<div class="controls">
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="right">
+    <input type="search" id="q" placeholder="Search name, car, venue, flight" aria-label="Search">
+    <label class="me"><input type="checkbox" id="me"> Only my assignments</label>
+    <button class="btn" id="xlsBtn">Export to Excel</button>
+    <span class="sync" id="sync"><i></i>Loading…</span>
+  </div>
+</div>
+<main id="main"></main>
+<footer>Source: THD_Visit_Normalized_Data.xlsx. Changes made with the edit link appear for everyone right away. Car trips are rebuilt from each event's cars and each car's driver and PIC. Export to Excel downloads the workbook with the original sheets plus Cars and a Change Log. Times are local (ICT, UTC+7).</footer>
+<dialog id="dlg"><div class="dlg-h"><h2 id="dlgTitle">Edit event</h2><span id="dlgId"></span></div>
+<div class="fgrid" id="fgrid"></div>
+<div class="miss" id="dlgMiss"></div>
+<div class="warnbox" id="dlgWarn" role="status"></div>
+<div class="dlg-f"><button class="btn danger" id="dlgDel">Delete</button><span class="sp"></span><button class="btn ghost" id="dlgCancel">Cancel</button><button class="btn" id="dlgSave">Save</button></div>
+</dialog>
+<datalist id="dl_cat"></datalist><datalist id="dl_place"></datalist><datalist id="dl_people"></datalist><datalist id="dl_role"></datalist><datalist id="dl_company"></datalist><datalist id="dl_vtype"></datalist><datalist id="dl_area"></datalist><datalist id="dl_meal"></datalist>
+<div class="toast" id="toast" hidden role="status"></div>
+</div>
+<script>
+const S={"snap":{"events":[],"people":[],"venues":[],"restaurants":[],"cars":[]},"cols":{"People":["Person ID","Full Name","Company","Title","Event Role","Phone","Assigned Vehicle","Source","Review Status"],"Schedule":["Event ID","Date","Start","End","Category","Activity / Task","Origin","Destination","Venue","Participants / Group","Vehicle","PIC / Owner","Details","Source","Status","Review / Conflict"],"Transportation":["Transport ID","Date","Start","Car","Plate","Driver","Driver Phone","PIC","PIC Phone","Origin","Destination","Passengers / Group","Purpose","Flight / Details","Source","Status","Review / Conflict"],"Venues":["Venue ID","Venue Name","Type","Area","Contact","Primary Use","Source","Map / Link","Review Status"],"Restaurants":["Restaurant ID","Date","Restaurant / Meal Location","Meal","Start","Capacity","Participants / Group","Booking Owner","Menu Summary","Service Provider","Map / Link","Source","Review / Conflict"],"Cars":["Car","Plate","Driver","Driver Phone","PIC","PIC Phone"]}};
+const ME="Natalie";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmtDay=iso=>{if(!iso)return"";const d=new Date(iso+"T00:00:00");return isNaN(d)?iso:d.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"})};
+const mins=s=>s?+s.slice(0,2)*60+ +s.slice(3,5):-1;
+const list=v=>(v||"").split(";").map(x=>x.trim()).filter(Boolean);
+const tel=p=>p?`<a href="tel:${p.replace(/[^\d+]/g,"")}">${esc(p)}</a>`:"";
+const link=u=>u?`<a href="${esc(u)}" target="_blank" rel="noopener">Map</a>`:"";
+const docId=id=>id.replace(/[^A-Za-z0-9_.~:@+-]/g,"_");
+const META=["orig","trn","added","deleted","updatedAt","seq"];
+const text=r=>Object.entries(r).filter(([k])=>!META.includes(k)).map(([,v])=>v).join(" ");
+const isMine=r=>text(r).includes(ME);
+function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,3500)}
+
+/* ---------- modules: one schema drives the editor, the change log and the Excel sheet ---------- */
+const f=(k,h,t="text",span=2,o={})=>({k,h,t,span,...o});
+const M={
+ events:{sheet:"Schedule",noun:"event",idH:"Event ID",prefix:"EVT-",fields:[
+  f("date","Date","date",1,{req:1}),f("start","Start","time",1,{req:1}),f("end","End","time",1),f("status","Status","select",1,{opts:["Planned","Confirmed","Changed","Cancelled"]}),
+  f("category","Category","text",2,{dl:"cat"}),f("activity","Activity / Task","text",2,{req:1}),f("origin","Origin","text",2,{dl:"place"}),f("destination","Destination","text",2,{dl:"place"}),
+  f("venue","Venue","text",4,{dl:"place"}),f("pic","PIC / Owner","people",4),f("participants","Participants / Group","people",4,{groups:1}),f("vehicle","Vehicle","cars",4),
+  f("details","Details","text",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
+ cars:{sheet:"Cars",noun:"car",idH:"Car",prefix:"Car ",manualId:true,fields:[
+  f("plate","Plate","text",2,{req:1}),f("driver","Driver","person",2,{role:"Driver",fill:"driverPhone"}),f("driverPhone","Driver Phone","tel",2),f("pic","PIC","person",2,{role:"Car PIC",fill:"picPhone"}),f("picPhone","PIC Phone","tel",2)]},
+ people:{sheet:"People",noun:"person",idH:"Person ID",prefix:"PER-",fields:[
+  f("name","Full Name","text",2,{req:1}),f("company","Company","text",1,{dl:"company"}),f("phone","Phone","tel",1),f("title","Title","text",4),
+  f("role","Event Role","text",4,{dl:"role",hint:"Separate several roles with ;"}),f("vehicle","Assigned Vehicle","cars",4),f("source","Source","text",2),f("review","Review Status","text",2)]},
+ venues:{sheet:"Venues",noun:"venue",idH:"Venue ID",prefix:"VEN-",fields:[
+  f("name","Venue Name","text",2,{req:1}),f("type","Type","text",1,{dl:"vtype"}),f("area","Area","text",1,{dl:"area"}),f("use","Primary Use","text",2),f("contact","Contact","contact",4),f("map","Map / Link","url",4),f("source","Source","text",2),f("review","Review Status","text",2)]},
+ restaurants:{sheet:"Restaurants",noun:"meal",idH:"Restaurant ID",prefix:"RST-",fields:[
+  f("date","Date","date",1,{req:1}),f("start","Start","time",1),f("meal","Meal","text",1,{dl:"meal"}),f("capacity","Capacity","text",1),
+  f("place","Restaurant / Meal Location","text",4,{req:1,dl:"place"}),f("owner","Booking Owner","people",4),f("participants","Participants / Group","people",4,{groups:1}),
+  f("menu","Menu Summary","textarea",4),f("provider","Service Provider","text",2),f("map","Map / Link","url",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
+};
+const MODS=Object.keys(M);
+
+/* ---------- state ---------- */
+const STORE={},DBDOCS={};
+MODS.forEach(m=>{STORE[m]=S.snap[m].map(x=>({...x}));DBDOCS[m]=null});
+function merge(m){ // snapshot first, shared store wins by id
+  const map=new Map(S.snap[m].map(x=>[x.id,x]));(DBDOCS[m]||[]).forEach(x=>map.set(x.id,x));STORE[m]=[...map.values()];
+}
+let db=null,canWrite=false,tab="schedule",q="",me=false,role="All";
+const live=m=>STORE[m].filter(x=>!x.deleted);
+const EV=()=>live("events").sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)||a.seq-b.seq);
+const CARS=()=>Object.fromEntries(live("cars").sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true})).map(c=>[c.id,c]));
+const PAL=["--c1","--c2","--c3","--c4","--c5","--c6"];
+const carVar=c=>{const n=parseInt(c.replace(/\D/g,""),10);return isNaN(n)?"--muted":PAL[(n-1)%6]};
+const carChips=(s,drv)=>{const C=CARS();return list(s).map(c=>C[c]?`<span class="car" style="background:var(${carVar(c)})">${esc(c)}${drv&&C[c].driver?`<small>${esc(C[c].driver)}</small>`:""}</span>`:`<span class="cat">${esc(c)}</span>`).join("")};
+const byF=(m,k)=>M[m].fields.find(x=>x.k===k);
+const PFIELDS=Object.fromEntries(MODS.map(m=>[m,M[m].fields.filter(z=>["people","person","contact"].includes(z.t))]).filter(([,v])=>v.length));
+const fold=s=>(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D").toLowerCase().trim();
+const PEOPLE=()=>live("people");
+const findP=n=>{const k=fold(n);return k?PEOPLE().find(p=>fold(p.name)===k):null};
+const contactParts=v=>{const [n,p]=(v||"").split("|").map(s=>s.trim());return {n:n||"",p:p||""}};
+const pvals=(z,v)=>z.t==="contact"?(contactParts(v).n?[contactParts(v).n]:[]):list(v);
+function pchips(v,small){return list(v).map(n=>{const p=findP(n);
+  return p?`<button type="button" class="pchip${small?" sm":""}" data-q="${esc(p.name)}" title="${esc([p.title,p.company,p.phone].filter(Boolean).join(", "))}">${esc(p.name)}${p.company&&!small?`<small>${esc(p.company)}</small>`:""}</button>`
+   :`<span class="pchip label${small?" sm":""}" title="Group label, not linked to People">${esc(n)}</span>`}).join("")}
+const nLinked=v=>list(v).filter(findP).length;
+
+function trips(){
+  const C=CARS(),out=[];
+  EV().filter(e=>e.status!=="Cancelled").forEach(e=>list(e.vehicle).filter(c=>C[c]).forEach(c=>{const k=C[c];
+    out.push({id:(e.trn||{})[c]||"",evt:e.id,date:e.date,start:e.start,car:c,plate:k.plate,driver:k.driver,driverPhone:k.driverPhone,pic:k.pic,picPhone:k.picPhone,
+      origin:e.origin,destination:e.destination,group:e.participants,purpose:e.activity,details:e.details,source:e.source||"Run sheet edit",status:e.status})}));
+  return out;
+}
+function clashes(T){
+  const by={},res=[];T.forEach(t=>(by[t.car+"|"+t.date]??=[]).push(t));
+  Object.values(by).forEach(L=>{L.sort((a,b)=>mins(a.start)-mins(b.start));
+    for(let i=1;i<L.length;i++){const a=L[i-1],b=L[i],gap=mins(b.start)-mins(a.start);if(gap<=30&&a.evt!==b.evt)res.push({a,b,gap})}});
+  return res;
+}
+function changeOf(m,x){
+  if(x.added)return x.deleted?null:{type:"Added"};
+  if(x.deleted)return{type:"Deleted"};
+  const d=M[m].fields.map(z=>z.k).filter(k=>x.orig&&k in x.orig&&(x.orig[k]??"")!==(x[k]??""));
+  return d.length?{type:"Edited",fields:d}:null;
+}
+const label=x=>x.activity||x.name||x.place||x.plate||"";
+
+/* ---------- flags ---------- */
+function buildFlags(){
+  const F=[],T=trips(),C=clashes(T),clashEvt=new Set(),P=live("people");
+  C.forEach(({a,b,gap})=>{clashEvt.add(a.evt);clashEvt.add(b.evt);
+    F.push({sev:gap===0?"high":"med",txt:`${b.car} is booked for two trips ${gap===0?"at the same time":gap+" min apart"} on ${fmtDay(b.date)}: ${a.start} ${a.purpose} (${a.group}) and ${b.start} ${b.purpose} (${b.group}).`,ref:`${a.evt}, ${b.evt}`})});
+  const noPic=T.filter(t=>!t.pic);
+  if(noPic.length)F.push({sev:"med",txt:`${[...new Set(noPic.map(t=>t.car))].join(", ")} has no PIC for ${noPic.length} trip${noPic.length>1?"s":""} (driver only).`,ref:[...new Set(noPic.map(t=>t.evt))].join(", ")});
+  EV().forEach(e=>{
+    if(/also|appears/i.test(e.details))F.push({sev:"med",txt:`${e.activity} (${fmtDay(e.date)} ${e.start}): ${e.details}. ${/pickup/i.test(e.details)&&!/PM|AM/.test(e.details)?"Confirm the pickup point.":"Confirm the final time."}`,ref:e.id});
+    if(/Multiple|Factory contact/.test(e.pic)&&/Flight/.test(e.category))F.push({sev:"low",txt:`${e.activity} has no named PIC (“${e.pic}”).`,ref:e.id});
+    if(e.end&&e.start&&mins(e.end)<mins(e.start))F.push({sev:"high",txt:`${e.activity} (${fmtDay(e.date)}) ends before it starts: ${e.start} to ${e.end}.`,ref:e.id});
+  });
+  live("restaurants").forEach(r=>{if(r.review&&!/19:30/.test(r.review))F.push({sev:/Capacity/i.test(r.review)?"high":"med",txt:`${r.place}, ${fmtDay(r.date)}: ${r.review}${r.capacity?` (capacity: ${r.capacity})`:""}.`,ref:r.id});
+    if(/pending/i.test(r.menu))F.push({sev:"low",txt:`${r.place}, ${fmtDay(r.date)}: menu still pending.`,ref:r.id})});
+  live("venues").forEach(v=>{if(v.review&&v.review!=="OK")F.push({sev:"low",txt:`${v.name}: ${v.review}.`,ref:v.id})});
+  const has=n=>P.find(p=>p.name===n);
+  [["Dave Lamie","David Lamie"],["Steve Richman","Steven Richman"]].forEach(([a,b])=>{const x=has(a),y=has(b);if(x&&y)F.push({sev:"med",txt:`Possible duplicate person: ${a} and ${b}. Merge if same person.`,ref:`${x.id}, ${y.id}`})});
+  const dv=P.filter(p=>/Devisional/i.test(p.title));if(dv.length)F.push({sev:"low",txt:`Spelling: “Devisional” should be “Divisional” (${dv.map(p=>p.name).join(", ")}).`,ref:dv.map(p=>p.id).join(", ")});
+  P.forEach(p=>list(p.vehicle).forEach(c=>{if(!CARS()[c])F.push({sev:"low",txt:`${p.name} is assigned to ${c}, which isn't in the car list.`,ref:p.id})}));
+  Object.entries(PFIELDS).forEach(([m,fs])=>{const un=new Map();live(m).forEach(x=>fs.forEach(z=>pvals(z,x[z.k]).forEach(n=>{if(!findP(n)){if(!un.has(n))un.set(n,[]);un.get(n).push(x.id)}})));
+    if(un.size){const ks=[...un.keys()];F.push({sev:"low",txt:`${M[m].sheet}: ${ks.length} name${ks.length>1?"s or group labels are":" or group label is"} not linked to People (${ks.slice(0,6).join(", ")}${ks.length>6?", …":""}). Open Edit and pick people to link them.`,ref:[...new Set([...un.values()].flat())].slice(0,8).join(", ")})}});
+  const o={high:0,med:1,low:2};F.sort((a,b)=>o[a.sev]-o[b.sev]);
+  return {F,T,C,clashEvt};
+}
+
+/* ---------- views ---------- */
+let V;
+const filt=rows=>rows.filter(r=>(!q||text(r).toLowerCase().includes(q))&&(!me||isMine(r)));
+const empty=()=>`<div class="empty">Nothing matches${q?` “${esc(q)}”`:""}${me?" in your assignments":""}. Clear the search or turn off “Only my assignments”.</div>`;
+const addBtn=(m,lbl,extra="")=>canWrite?`<button class="btn ghost" data-add="${m}" ${extra}>${lbl}</button>`:"";
+const editBtn=(m,id,what)=>canWrite?`<button class="edit" data-mod="${m}" data-edit="${esc(id)}" aria-label="Edit ${esc(what)}">Edit</button>`:"";
+const tagFor=(m,x)=>{const c=changeOf(m,x);return x.status==="Cancelled"?`<span class="tag cxl">Cancelled</span>`:c?.type==="Added"?`<span class="tag new">New</span>`:c?.type==="Edited"?`<span class="tag chg" title="Changed: ${esc(c.fields.map(k=>byF(m,k).h).join(", "))}">Changed</span>`:""};
+const bar=(title,btns)=>`<div class="bar"><h2 class="sec" style="margin:0">${title}</h2><div>${btns}</div></div>`;
+
+/* ---- day view ---- */
+const todayIso=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`})();
+let day=(()=>{try{return localStorage.getItem("thd-day")||null}catch(e){return null}})();
+function setDay(d){day=d;try{localStorage.setItem("thd-day",d)}catch(e){}render();window.scrollTo({top:Math.min(window.scrollY,$("main").offsetTop-10)})}
+function allDays(){return [...new Set(EV().map(e=>e.date).filter(Boolean))].sort()}
+function currentDay(){const D=allDays();if(day==="all")return "all";if(day&&D.includes(day))return day;return D.includes(todayIso)?todayIso:(D.find(d=>d>todayIso)||D[0]||"all")}
+function dayLong(iso){const d=new Date(iso+"T00:00:00");return d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}
+function timeline(rows){
+  const ev=rows.filter(e=>e.start);if(!ev.length)return"";
+  const st=e=>mins(e.start),en=e=>Math.max(mins(e.end)>st(e)?mins(e.end):st(e)+30,st(e)+30);
+  let lo=Math.floor(Math.min(...ev.map(st))/60)*60,hi=Math.ceil(Math.max(...ev.map(en))/60)*60;if(hi-lo<240)hi=lo+240;
+  const lanes=[],pos=[];ev.slice().sort((a,b)=>st(a)-st(b)).forEach(e=>{let l=lanes.findIndex(end=>end<=st(e));if(l<0){l=lanes.length;lanes.push(0)}lanes[l]=en(e);pos.push([e,l])});
+  const pct=m=>((m-lo)/(hi-lo)*100).toFixed(2);
+  const ticks=[];for(let h=lo;h<=hi;h+=60)ticks.push(`<span class="tick" style="left:${pct(h)}%">${String(h/60%24).padStart(2,"0")}:00</span>`);
+  const nowM=day===todayIso||currentDay()===todayIso?new Date().getHours()*60+new Date().getMinutes():-1;
+  return `<div class="tl" style="--lanes:${lanes.length}"><div class="tl-axis">${ticks.join("")}</div><div class="tl-body">${ticks.map((_,i)=>`<i class="grid" style="left:${pct(lo+i*60)}%"></i>`).join("")}
+   ${nowM>=lo&&nowM<=hi&&currentDay()===todayIso?`<i class="now" style="left:${pct(nowM)}%" title="Now"></i>`:""}
+   ${pos.map(([e,l])=>`<button class="blk ${isMine(e)?"mine":""} ${e.status==="Cancelled"?"cx":""} k-${/Transport|Transfer|Flight/i.test(e.category)?"move":/Meal|Dinner|Lunch/i.test(e.category)?"meal":/Visit|Tour|Meeting|Cruise/i.test(e.category)?"visit":"other"}" style="left:${pct(st(e))}%;width:calc(${pct(lo+en(e)-st(e))}% - 2px);top:calc(${l} * 34px + 4px)" data-jump="${esc(e.id)}" title="${esc(e.start+(e.end?"–"+e.end:"")+" "+e.activity)}"><b>${esc(e.start)}</b> ${esc(e.activity)}</button>`).join("")}</div>
+   <div class="tl-key"><span class="k-move">Transfer</span><span class="k-visit">Visit / meeting</span><span class="k-meal">Meal</span><span class="k-other">Other</span>${ev.some(isMine)?`<span class="k-mine">Yours</span>`:""}</div></div>`;
+}
+function daySummary(rows){
+  const C=[...new Set(rows.flatMap(e=>list(e.vehicle)).filter(c=>CARS()[c]))].sort();
+  const first=rows.find(e=>e.start),last=rows.slice().reverse().find(e=>e.end||e.start);
+  const mine=rows.filter(isMine).length,cl=rows.filter(e=>V.clashEvt.has(e.id)).length;
+  return `<dl class="dsum"><div><dt>Events</dt><dd>${rows.length}</dd></div>${first?`<div><dt>First start</dt><dd>${esc(first.start)}</dd></div>`:""}${last?`<div><dt>Last finish</dt><dd>${esc(last.end||last.start)}</dd></div>`:""}
+   <div><dt>Cars in use</dt><dd>${C.length?carChips(C.join(";")):"None"}</dd></div>${mine?`<div><dt>Yours</dt><dd>${mine}</dd></div>`:""}${cl?`<div class="bad"><dt>Car clashes</dt><dd>${cl}</dd></div>`:""}</dl>`;
+}
+function evRow(e){
+  const flag=/also|appears/i.test(e.details),n=nLinked(e.participants);
+  return `<div class="ev ${isMine(e)?"mine":""} ${e.status==="Cancelled"?"cancelled":""}" id="ev-${esc(e.id)}"><div class="time">${esc(e.start)}${e.end?`<small>to ${esc(e.end)}</small>`:""}</div><div>
+     <h3><span class="cat">${esc(e.category)}</span>${esc(e.activity)}${tagFor("events",e)}</h3>
+     ${e.origin||e.destination?`<div class="route">${esc(e.origin)} → ${esc(e.destination)}</div>`:e.venue?`<div class="route">@ ${esc(e.venue)}</div>`:""}
+     <dl class="kv">
+      ${e.pic?`<dt>PIC</dt><dd>${pchips(e.pic)}</dd>`:""}
+      ${e.participants?`<dt>Who${n?` <span class="cnt">${n}</span>`:""}</dt><dd>${pchips(e.participants)}</dd>`:""}
+      ${e.vehicle?`<dt>Cars</dt><dd>${carChips(e.vehicle,true)}</dd>`:""}
+     </dl>
+     ${e.details?`<div class="${flag?"note":"meta"}">${esc(e.details)}</div>`:""}
+     ${V.clashEvt.has(e.id)?`<div class="note">A car on this event is double-booked. See Needs review.</div>`:""}</div>
+     ${editBtn("events",e.id,e.activity)}</div>`;
+}
+function schedule(){
+  const D=allDays(),cur=currentDay(),rowsAll=filt(EV());
+  const cnt=d=>rowsAll.filter(e=>e.date===d).length;
+  const nav=`<div class="daynav" role="tablist" aria-label="Choose a day">
+    <button class="dchip" role="tab" aria-selected="${cur==="all"}" data-day-pick="all"><b>All days</b><span>${rowsAll.length}</span></button>
+    ${D.map(d=>{const dt=new Date(d+"T00:00:00");return `<button class="dchip ${d===todayIso?"today":""}" role="tab" aria-selected="${cur===d}" data-day-pick="${d}"><b>${dt.toLocaleDateString("en-GB",{weekday:"short"})} ${dt.getDate()}</b><span>${cnt(d)}${d===todayIso?" today":""}</span></button>`}).join("")}</div>`;
+  if(cur==="all"){
+    const head=bar("Schedule",addBtn("events","Add event",`data-day="${D.includes(todayIso)?todayIso:D[0]||"2026-09-21"}"`))+nav;
+    if(!rowsAll.length)return head+empty();
+    const days={};rowsAll.forEach(r=>(days[r.date]??=[]).push(r));
+    return head+Object.keys(days).sort().map(d=>`<div class="day"><div class="dayhead"><h2><button class="linkish" data-day-pick="${d}">${fmtDay(d)}</button></h2><span>${days[d].length} item${days[d].length>1?"s":""}</span>${canWrite?`<button class="add" data-add="events" data-day="${d}">Add event to this day</button>`:""}</div>`+days[d].map(evRow).join("")+`</div>`).join("");
+  }
+  const i=D.indexOf(cur),prev=D[i-1],next=D[i+1],rows=rowsAll.filter(e=>e.date===cur);
+  const head=`<div class="bar"><div class="dtitle"><button class="step" data-day-pick="${prev||""}" ${prev?"":"disabled"} aria-label="Previous day">‹</button><h2 class="sec" style="margin:0"><span class="dl-long">${dayLong(cur)}</span><span class="dl-short">${fmtDay(cur)}</span></h2><button class="step" data-day-pick="${next||""}" ${next?"":"disabled"} aria-label="Next day">›</button>${cur===todayIso?`<span class="todaytag">Today</span>`:""}</div><div>${addBtn("events","Add event",`data-day="${cur}"`)}</div></div>`+nav;
+  if(!rows.length)return head+empty();
+  return head+daySummary(rows)+`<div class="day">`+rows.map(evRow).join("")+`</div>`;
+}
+function cars(){
+  const clashT=new Set();V.C.forEach(({a,b})=>{clashT.add(a.evt+a.car);clashT.add(b.evt+b.car)});
+  const C=CARS(),T=V.T;
+  const ids=Object.keys(C).filter(c=>filt([C[c],...T.filter(t=>t.car===c)]).length);
+  const head=bar("Cars & drivers",addBtn("cars","Add car"));
+  if(!ids.length)return head+empty();
+  return head+`<div class="cars">`+ids.map(c=>{const h=C[c];const L=filt(T.filter(t=>t.car===c)).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));const all=T.filter(t=>t.car===c).length;
+   return `<article class="carbox" style="--cc:var(${carVar(c)})"><header style="position:relative"><h3>${esc(c)}<span class="plate">${esc(h.plate)}</span>${tagFor("cars",h)}</h3>
+   <dl class="crew"><dt>Driver</dt><dd>${h.driver?pchips(h.driver):""} ${tel(h.driverPhone)}</dd><dt>PIC</dt><dd>${h.pic?pchips(h.pic)+" "+tel(h.picPhone):"<span style='color:var(--flag)'>Not assigned</span>"}</dd><dt>Trips</dt><dd>${all}</dd></dl>${editBtn("cars",c,c)}</header>`+
+   (L.length?L.map(t=>{const x=clashT.has(t.evt+t.car);return `<div class="trip ${x?"clash":""}"><div class="t">${esc(t.start)}<small>${fmtDay(t.date)}</small></div><div><div>${esc(t.origin)} → ${esc(t.destination)}</div><div class="who">${esc(t.purpose)}${t.details?", "+esc(t.details):""}</div>${t.group?`<div class="chipline">${pchips(t.group,true)}</div>`:""}${x?`<div class="who" style="color:var(--flag)">Overlaps another trip for this car</div>`:""}</div></div>`}).join(""):`<div class="trip"><div></div><div class="who">No trips yet. Add this car to an event in the Schedule.</div></div>`)+`</article>`}).join("")+`</div>`;
+}
+function people(){
+  const roles=["All","VIP / Visitor","Car PIC","Driver","Factory PIC","Passenger","Cruise participant"];
+  let rows=filt(live("people")).sort((a,b)=>a.name.localeCompare(b.name));if(role!=="All")rows=rows.filter(p=>p.role.includes(role));
+  const head=bar("People",addBtn("people","Add person"))+`<div class="chips" id="roles">${roles.map(r=>`<button aria-pressed="${r===role}" data-r="${r}">${r}</button>`).join("")}</div>`;
+  if(!rows.length)return head+empty();
+  return head+`<div class="tbl"><table><thead><tr><th>Name</th><th>Company</th><th>Title</th><th>Role</th><th>Car</th><th>Phone</th>${canWrite?"<th></th>":""}</tr></thead><tbody>`+
+   rows.map(p=>`<tr class="${isMine(p)?"mine":""}"><td><b>${esc(p.name)}</b>${tagFor("people",p)}</td><td>${esc(p.company)}</td><td>${esc(p.title)}</td><td>${esc(p.role).replace(/; /g,"<br>")}</td><td>${carChips(p.vehicle)}</td><td style="white-space:nowrap">${tel(p.phone)}</td>${canWrite?`<td class="rowact">${editBtn("people",p.id,p.name)}</td>`:""}</tr>`).join("")+`</tbody></table></div>`;
+}
+function mealCard(r){
+  const n=nLinked(r.participants);
+  return `<div class="ev meal"><div class="time">${esc(r.start||"")}<small>${fmtDay(r.date)}</small></div><div>
+    <h3>${r.meal?`<span class="cat">${esc(r.meal)}</span>`:""}${esc(r.place)}${tagFor("restaurants",r)}</h3>
+    <dl class="kv">
+     ${r.capacity?`<dt>Pax</dt><dd>${esc(r.capacity)}</dd>`:""}
+     ${r.owner?`<dt>Booked by</dt><dd>${pchips(r.owner)}</dd>`:""}
+     ${r.participants?`<dt>Who${n?` <span class="cnt">${n}</span>`:""}</dt><dd>${pchips(r.participants)}</dd>`:""}
+     ${r.provider?`<dt>Provider</dt><dd>${esc(r.provider)}</dd>`:""}
+     ${r.menu?`<dt>Menu</dt><dd class="menu">${esc(r.menu)}</dd>`:""}
+     ${r.map?`<dt>Map</dt><dd>${link(r.map)}</dd>`:""}
+    </dl>
+    ${r.review?`<div class="note">${esc(r.review)}</div>`:""}</div>
+    ${editBtn("restaurants",r.id,r.place)}</div>`;
+}
+function places(){
+  const R=filt(live("restaurants")).sort((a,b)=>((a.date||"")+(a.start||"")).localeCompare((b.date||"")+(b.start||""))),Vn=filt(live("venues"));
+  const act=canWrite?"<th></th>":"";
+  return bar("Meals",addBtn("restaurants","Add meal"))+(R.length?`<div class="day">${R.map(mealCard).join("")}</div>`:empty())+
+  `<div style="height:22px"></div>`+bar("Venues",addBtn("venues","Add venue"))+(Vn.length?`<div class="tbl"><table><thead><tr><th>Venue</th><th>Type</th><th>Area</th><th>Contact</th><th>Use</th><th></th>${act}</tr></thead><tbody>`+
+   Vn.map(v=>{const c=contactParts(v.contact);return `<tr><td><b>${esc(v.name)}</b>${tagFor("venues",v)}${v.review&&v.review!=="OK"?`<div class="note">${esc(v.review)}</div>`:""}</td><td>${esc(v.type)}</td><td>${esc(v.area)}</td><td>${c.n?pchips(c.n)+(c.p?"<br>"+tel(c.p):""):""}</td><td>${esc(v.use)}</td><td>${link(v.map)}</td>${canWrite?`<td class="rowact">${editBtn("venues",v.id,v.name)}</td>`:""}</tr>`}).join("")+`</tbody></table></div>`:empty());
+}
+function review(){
+  const L=V.F.filter(x=>!q||text(x).toLowerCase().includes(q)),lab={high:"Fix first",med:"Confirm",low:"Tidy up"};
+  const ch=MODS.flatMap(m=>STORE[m].map(x=>[m,x,changeOf(m,x)])).filter(([,,c])=>c).sort((a,b)=>(b[1].updatedAt||"").localeCompare(a[1].updatedAt||""));
+  const chHtml=ch.length?`<h2 class="sec">Changes since import</h2><ul class="chg">`+ch.map(([m,x,c])=>`<li><b>${c.type}</b> ${esc(M[m].noun)} ${esc(x.id)}: ${esc(label(x))}${x.date?` (${fmtDay(x.date)} ${esc(x.start||"")})`:""}
+     ${c.fields?`<div class="diff">${c.fields.map(k=>`${esc(byF(m,k).h)}: <del>${esc(x.orig[k]||"blank")}</del> → <ins>${esc(x[k]||"blank")}</ins>`).join("<br>")}</div>`:""}
+     ${x.updatedAt?`<div class="diff">${new Date(x.updatedAt).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</div>`:""}
+     ${canWrite&&c.type==="Deleted"?`<button class="btn ghost" style="margin-top:6px;padding:3px 10px" data-restore="${esc(x.id)}" data-mod="${m}">Restore</button>`:""}</li>`).join("")+`</ul>`:"";
+  return (L.length?`<ul class="flags">`+L.map(x=>`<li><span class="sev ${x.sev}">${lab[x.sev]}</span><div>${esc(x.txt)}<div class="ref">${esc(x.ref)}</div></div></li>`).join("")+`</ul>`:empty())+chHtml;
+}
+function render(){
+  V=buildFlags();
+  const ch=MODS.reduce((n,m)=>n+STORE[m].filter(x=>changeOf(m,x)).length,0);
+  $("strip").innerHTML=[["6","days, 20–25 Sep"],[live("people").filter(p=>p.role.includes("VIP")).length,"VIP visitors"],[EV().length,"scheduled events"],[V.T.length,`car trips, ${Object.keys(CARS()).length} cars`],[V.F.filter(x=>x.sev==="high").length+" / "+V.F.length,"high-priority / all flags","warn"],...(ch?[[ch,"changes since import"]]:[])]
+   .map(([b,s,c])=>`<div class="${c||""}"><b>${b}</b><span>${s}</span></div>`).join("");
+  const T=[["schedule","Schedule",EV().length],["cars","Cars & drivers",Object.keys(CARS()).length],["people","People",live("people").length],["places","Venues & meals",live("venues").length+live("restaurants").length],["review","Needs review",V.F.length]];
+  $("tabs").innerHTML=T.map(([id,l,n])=>`<button role="tab" aria-selected="${id===tab}" data-t="${id}">${l}<span class="n">${n}</span></button>`).join("");
+  $("main").innerHTML=`<section class="panel on">${({schedule,cars,people,places,review})[tab]()}</section>`;
+  const sel=document.querySelector('.dchip[aria-selected="true"]');if(sel){const n=sel.parentElement;n.scrollLeft=sel.offsetLeft-n.offsetLeft-12}
+}
+
+/* ---------- interactions ---------- */
+$("tabs").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
+$("q").oninput=e=>{q=e.target.value.trim().toLowerCase();render()};
+$("me").onchange=e=>{me=e.target.checked;render()};
+$("main").onclick=e=>{
+  const b=e.target.closest("button");if(!b)return;
+  if(b.dataset.q){q=b.dataset.q.toLowerCase();$("q").value=b.dataset.q;render();toast("Showing items with "+b.dataset.q+". Clear the search to see everything.");return}
+  if(b.dataset.r){role=b.dataset.r;render()}
+  else if("dayPick" in b.dataset){if(b.dataset.dayPick)setDay(b.dataset.dayPick)}
+  else if(b.dataset.jump){const el=document.getElementById("ev-"+b.dataset.jump);if(el){el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1600)}}
+  else if(b.dataset.edit)openEditor(b.dataset.mod,STORE[b.dataset.mod].find(x=>x.id===b.dataset.edit));
+  else if(b.dataset.add)openEditor(b.dataset.add,null,b.dataset.day);
+  else if(b.dataset.restore){const m=b.dataset.mod,x=STORE[m].find(y=>y.id===b.dataset.restore);save(m,{...x,deleted:false},"Restored "+x.id)}
+};
+$("xlsBtn").onclick=exportXlsx;
+document.addEventListener("keydown",e=>{if(tab!=="schedule"||$("dlg").open||/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName))return;
+  const D=allDays(),cur=currentDay();if(cur==="all")return;const i=D.indexOf(cur);
+  if(e.key==="ArrowLeft"&&D[i-1])setDay(D[i-1]);if(e.key==="ArrowRight"&&D[i+1])setDay(D[i+1])});
+
+/* ---------- editor ---------- */
+let ed=null; // {m, x}
+function fillLists(){
+  const u=a=>[...new Set(a.filter(Boolean).map(s=>s.trim()))].sort().map(v=>`<option value="${esc(v)}">`).join("");
+  const P=live("people");
+  $("dl_cat").innerHTML=u(live("events").map(e=>e.category));
+  $("dl_place").innerHTML=u([...live("venues").map(v=>v.name),...live("events").flatMap(e=>[e.origin,e.destination,e.venue])]);
+  $("dl_people").innerHTML=u([...P.map(p=>p.name),...live("events").map(e=>e.pic)]);
+  $("dl_role").innerHTML=u(P.flatMap(p=>list(p.role)));
+  $("dl_company").innerHTML=u(P.map(p=>p.company));
+  $("dl_vtype").innerHTML=u(live("venues").map(v=>v.type));
+  $("dl_area").innerHTML=u(live("venues").map(v=>v.area));
+  $("dl_meal").innerHTML=u(live("restaurants").map(r=>r.meal));
+}
+function fieldHtml(z,val){
+  const id="f_"+z.k,sp=z.span===4?"s4":z.span===2?"s2":"";
+  if(z.t==="cars"){const C=CARS(),cl=list(val);
+    return `<div class="${sp}"><div class="flabel">${esc(z.h)}</div><div class="carpick" id="${id}">${Object.keys(C).map(c=>`<label style="--cc:var(${carVar(c)})"><input type="checkbox" value="${esc(c)}" ${cl.includes(c)?"checked":""}>${esc(c)}<span style="color:var(--muted);font-size:12px">${esc(C[c].driver)}</span></label>`).join("")}</div>
+     <label style="margin-top:8px">Other vehicle note<input id="${id}_other" value="${esc(cl.filter(c=>!C[c]).join("; "))}" placeholder="e.g. Multiple, Bus"></label></div>`}
+  if(PFIELDS_T.includes(z.t))return pickerHtml(z,val,sp);
+  const req=z.req?" *":"",hint=z.hint?` <span class="hint">${esc(z.hint)}</span>`:"";
+  if(z.t==="select")return `<label class="${sp}">${esc(z.h)}<select id="${id}">${z.opts.map(o=>`<option ${o===val?"selected":""}>${o}</option>`).join("")}</select></label>`;
+  if(z.t==="textarea")return `<label class="${sp}">${esc(z.h)}${hint}<textarea id="${id}">${esc(val)}</textarea></label>`;
+  const type={date:"date",time:"time",tel:"tel",url:"url"}[z.t]||"text";
+  return `<label class="${sp}">${esc(z.h)}${req}${hint}<input id="${id}" type="${type}" value="${esc(val)}" ${z.dl?`list="dl_${z.dl}"`:""}></label>`;
+}
+const PFIELDS_T=["people","person","contact"];
+const GROUPS=[{l:"THD visitors",f:p=>p.company==="THD"},{l:"TTIVN executives",f:p=>p.company==="TTIVN"},{l:"Car PICs",f:p=>/Car PIC/.test(p.role)},{l:"Factory PICs",f:p=>/Factory PIC/.test(p.role)},{l:"Drivers",f:p=>/Driver/.test(p.role)}];
+let PK={};
+function pickerHtml(z,val,sp){
+  PK[z.k]={z,vals:pvals(z,val),multi:z.t==="people",phone:z.t==="contact"?contactParts(val).p:"",hi:0,opts:[]};
+  const hint=(z.t==="contact"||z.fill)?' <span class="hint">phone fills in from People</span>':'';
+  return `<div class="${sp} pp" data-k="${z.k}"><div class="flabel">${esc(z.h)}${hint}</div>
+   <div class="pp-box"><span class="pp-tags"></span><input class="pp-in" type="text" autocomplete="off" role="combobox" aria-expanded="false" aria-label="${esc(z.h)}"></div>
+   <div class="pp-menu" role="listbox" hidden></div>
+   ${z.groups?`<div class="pp-groups"><span>Add everyone in</span>${GROUPS.map((g,i)=>`<button type="button" data-g="${i}">${g.l}</button>`).join("")}</div>`:""}</div>`;
+}
+function ppEl(k){return document.querySelector(`.pp[data-k="${k}"]`)}
+function ppRender(k){
+  const s=PK[k],el=ppEl(k);if(!el)return;
+  el.querySelector(".pp-tags").innerHTML=s.vals.map((n,i)=>{const p=findP(n);return `<span class="pp-tag ${p?"":"label"}" title="${p?esc([p.company,p.role].filter(Boolean).join(", ")):"Group label, not linked to People"}">${esc(p?p.name:n)}<button type="button" data-rm="${i}" aria-label="Remove ${esc(n)}">×</button></span>`}).join("");
+  el.querySelector(".pp-in").placeholder=s.multi?(s.vals.length?"Add another":"Type a name, pick from People"):(s.vals.length?"Type to replace":"Type a name, pick from People");
+}
+function ppMenu(k){
+  const s=PK[k],el=ppEl(k),inp=el.querySelector(".pp-in"),menu=el.querySelector(".pp-menu");
+  const qq=fold(inp.value),toks=qq.split(/\s+/).filter(Boolean),chosen=new Set(s.vals.map(fold));
+  let c=PEOPLE().filter(p=>!chosen.has(fold(p.name))&&toks.every(t=>fold([p.name,p.company,p.role].join(" ")).includes(t)));
+  const pref=s.z.role,has=p=>(p.role||"").includes(pref)?0:1;
+  c.sort((a,b)=>(pref?has(a)-has(b):0)||a.name.localeCompare(b.name));
+  c=c.slice(0,8);
+  const opts=c.map(p=>({t:"p",v:p.name,h:`${esc(p.name)}<small>${esc([p.company,p.role].filter(Boolean).join(", "))}</small>`}));
+  const raw=inp.value.trim();
+  if(raw&&!PEOPLE().some(p=>fold(p.name)===qq)){opts.push({t:"new",v:raw,h:`Add “${esc(raw)}” to People`});if(s.multi)opts.push({t:"label",v:raw,h:`Use “${esc(raw)}” as a group label<small>not linked to People</small>`})}
+  s.opts=opts;s.hi=Math.min(s.hi,Math.max(0,opts.length-1));
+  if(!opts.length||document.activeElement!==inp){menu.hidden=true;inp.setAttribute("aria-expanded","false");return}
+  menu.innerHTML=opts.map((o,i)=>`<button type="button" role="option" class="pp-opt ${o.t!=="p"?"alt":""}" aria-selected="${i===s.hi}" data-opt="${i}">${o.h}</button>`).join("");
+  menu.hidden=false;inp.setAttribute("aria-expanded","true");
+  const sel=menu.querySelector('[aria-selected="true"]');sel&&sel.scrollIntoView({block:"nearest"});
+}
+async function ppPick(k,i){
+  const s=PK[k],o=s.opts[i];if(!o)return;
+  const name=o.v;
+  if(o.t==="new"){
+    if(!db){toast("This is a view-only link.");return}
+    const id=nextId("people");
+    const doc={id,name,company:"",title:"",role:s.z.role||"",phone:"",vehicle:"",source:"Run sheet edit",review:"",orig:null,added:true,deleted:false,seq:STORE.people.length+1};
+    if(!await save("people",doc,null))return;
+    toast(`Added ${name} to People as ${id}. Add phone and company in People.`)}
+  if(s.multi){if(!s.vals.some(v=>fold(v)===fold(name)))s.vals.push(name)}else s.vals=[name];
+  const p=findP(name);
+  if(p&&s.z.fill&&p.phone)$("f_"+s.z.fill).value=p.phone;
+  if(s.z.t==="contact")s.phone=(p&&p.phone)||"";
+  const el=ppEl(k),inp=el.querySelector(".pp-in");inp.value="";s.hi=0;ppRender(k);inp.focus();el.querySelector(".pp-menu").hidden=true;inp.setAttribute("aria-expanded","false");checkForm();
+}
+function initPickers(){
+  Object.keys(PK).forEach(ppRender);
+  $("fgrid").querySelectorAll(".pp").forEach(el=>{const k=el.dataset.k,inp=el.querySelector(".pp-in"),menu=el.querySelector(".pp-menu");
+    inp.addEventListener("input",()=>{PK[k].hi=0;ppMenu(k)});
+    inp.addEventListener("focus",()=>{if(inp.value)ppMenu(k)});
+    inp.addEventListener("click",()=>ppMenu(k));
+    inp.addEventListener("blur",()=>setTimeout(()=>{if(document.activeElement!==inp)menu.hidden=true},150));
+    inp.addEventListener("keydown",e=>{const s=PK[k];
+      if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();if(menu.hidden){ppMenu(k);return}if(!s.opts.length)return;s.hi=(s.hi+(e.key==="ArrowDown"?1:-1)+s.opts.length)%s.opts.length;ppMenu(k)}
+      else if(e.key==="Enter"){e.preventDefault();if(!menu.hidden&&s.opts.length)ppPick(k,s.hi)}
+      else if(e.key==="Escape"&&!menu.hidden){e.preventDefault();e.stopPropagation();menu.hidden=true}
+      else if(e.key==="Backspace"&&!inp.value&&s.vals.length){s.vals.pop();ppRender(k);ppMenu(k);checkForm()}});
+    el.querySelector(".pp-box").addEventListener("click",e=>{if(!e.target.closest("button"))inp.focus()});
+    el.addEventListener("mousedown",e=>{if(e.target.closest(".pp-opt"))e.preventDefault()});
+    el.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const s=PK[k];
+      if(b.dataset.rm!==undefined){s.vals.splice(+b.dataset.rm,1);if(s.z.t==="contact")s.phone="";ppRender(k);checkForm();inp.focus()}
+      else if(b.dataset.opt!==undefined)ppPick(k,+b.dataset.opt);
+      else if(b.dataset.g!==undefined){const add=PEOPLE().filter(GROUPS[+b.dataset.g].f).map(p=>p.name).filter(n=>!s.vals.some(v=>fold(v)===fold(n)));s.vals.push(...add);ppRender(k);checkForm();toast(add.length?`Added ${add.length} ${add.length>1?"people":"person"}.`:"Everyone in that group is already added.")}});
+  });
+}
+
+function openEditor(m,x,day){PK={};
+  const mod=M[m];ed={m,x};fillLists();
+  $("dlgTitle").textContent=(x?"Edit ":"Add ")+mod.noun;$("dlgId").textContent=x?x.id:"";
+  const v=x||Object.fromEntries(mod.fields.map(z=>[z.k,z.k==="date"?(day||"2026-09-21"):z.k==="status"?"Planned":""]));
+  let html="";
+  if(mod.manualId)html+=`<label class="s2">${esc(mod.idH)} *<input id="f__id" value="${esc(x?x.id:nextId(m))}" ${x?"disabled":""}></label>`;
+  html+=mod.fields.map(z=>fieldHtml(z,v[z.k]??"")).join("");
+  $("fgrid").innerHTML=html;initPickers();
+  $("dlgDel").hidden=!x;
+  checkForm();$("dlg").showModal();
+  const first=$("fgrid").querySelector("input:not([disabled]),select,textarea");first&&first.focus();
+}
+function readForm(){
+  const {m}=ed,o={};
+  M[m].fields.forEach(z=>{
+    if(z.t==="cars"){const cs=[...$("f_"+z.k).querySelectorAll("input:checked")].map(i=>i.value),other=$("f_"+z.k+"_other").value.trim();o[z.k]=[...cs,...(other?[other]:[])].join("; ")}
+    else if(PFIELDS_T.includes(z.t)){const s=PK[z.k];if(z.t==="contact"){const n=s.vals[0]||"";const p=findP(n);const ph=(p&&p.phone)||s.phone;o[z.k]=n?(ph?`${p?p.name:n} | ${ph}`:(p?p.name:n)):""}else o[z.k]=s.vals.map(v=>{const p=findP(v);return p?p.name:v}).join("; ")}
+    else o[z.k]=$("f_"+z.k).value.trim()});
+  if(M[m].manualId)o.__id=$("f__id").value.trim();
+  return o;
+}
+function checkForm(){
+  if(!ed)return;const {m,x}=ed,o=readForm(),w=[];
+  const miss=M[m].fields.filter(z=>z.req&&!o[z.k]).map(z=>z.h);
+  if(M[m].manualId){if(!o.__id)miss.unshift(M[m].idH);else if(!x&&STORE[m].some(y=>y.id.toLowerCase()===o.__id.toLowerCase()))w.push(`${o.__id} already exists.`)}
+  if(o.end&&o.start&&mins(o.end)<mins(o.start))w.push("End time is before start time.");
+  if(m==="events")list(o.vehicle).filter(c=>CARS()[c]).forEach(c=>{
+    EV().filter(e=>e.id!==x?.id&&e.date===o.date&&e.status!=="Cancelled"&&list(e.vehicle).includes(c)&&o.start&&Math.abs(mins(e.start)-mins(o.start))<=30)
+     .forEach(e=>w.push(`${c} already has ${e.start} ${e.activity}.`))});
+  if(m==="cars"&&x&&changeOf("cars",x)===null&&false);
+  $("dlgWarn").textContent=w.join(" ");
+  $("dlgMiss").textContent=miss.length?"Required: "+miss.join(", "):"";
+  $("dlgSave").disabled=!!miss.length||w.some(s=>s.endsWith("already exists."));
+}
+function nextId(m){
+  const p=M[m].prefix,n=Math.max(0,...STORE[m].map(x=>parseInt(x.id.replace(/\D/g,""),10)||0))+1;
+  return p+String(n).padStart(m==="cars"?2:3,"0");
+}
+$("dlg").addEventListener("input",checkForm);
+$("dlg").addEventListener("change",checkForm);
+$("dlgCancel").onclick=()=>$("dlg").close();
+$("dlg").addEventListener("close",()=>ed=null);
+$("dlgDel").onclick=async()=>{
+  const {m,x}=ed;
+  let extra="";if(m==="cars"){const n=trips().filter(t=>t.car===x.id).length;if(n)extra=` It has ${n} trip${n>1?"s":""}; those events will lose this car.`}
+  if(!confirm(`Delete ${M[m].noun} “${label(x)||x.id}”?${extra} You can restore it from Needs review.`))return;
+  if(await save(m,{...x,deleted:true},"Deleted "+x.id))$("dlg").close();
+};
+$("dlgSave").onclick=async()=>{
+  const {m,x}=ed,o=readForm();let doc;
+  const id=M[m].manualId?(x?x.id:o.__id):null;delete o.__id;
+  if(x)doc={...x,...o};
+  else{const nid=id||nextId(m);doc={id:nid,...o,orig:null,added:true,deleted:false,seq:STORE[m].length+1};
+    if(m==="events"){doc.source=doc.source||"Run sheet edit";doc.trn={}}
+    if(byF(m,"source")&&!doc.source)doc.source="Run sheet edit"}
+  if(m==="events"){ // stable Transport IDs for new cars on this event
+    const used=STORE.events.flatMap(e=>Object.values(e.trn||{})).map(s=>+s.replace(/\D/g,"")||0);let n=Math.max(0,...used)+1;
+    doc.trn={...(doc.trn||{})};list(doc.vehicle).filter(c=>CARS()[c]&&!doc.trn[c]).forEach(c=>doc.trn[c]="TRN-"+String(n++).padStart(3,"0"))}
+  const ok=await save(m,doc,(x?"Saved ":"Added ")+doc.id);if(!ok)return;$("dlg").close();
+  if(m==="people"&&x&&x.name!==doc.name){ // keep links when a person is renamed
+    const from=fold(x.name);let n=0;
+    for(const [mm,fs] of Object.entries(PFIELDS))for(const y of STORE[mm].slice()){const chg={};
+      fs.forEach(z=>{const v=y[z.k]||"";if(z.t==="contact"){const c=contactParts(v);if(c.n&&fold(c.n)===from)chg[z.k]=doc.name+(c.p?" | "+c.p:"")}
+        else{const L=list(v);if(L.some(s=>fold(s)===from))chg[z.k]=L.map(s=>fold(s)===from?doc.name:s).join("; ")}});
+      if(Object.keys(chg).length){n++;await save(mm,{...y,...chg},null)}}
+    if(n)toast(`Renamed in ${n} linked record${n>1?"s":""}.`)}
+};
+async function save(m,doc,msg){
+  if(!db){toast("This is a view-only link.");return false}
+  doc={...doc,updatedAt:new Date().toISOString()};
+  const i=STORE[m].findIndex(x=>x.id===doc.id);if(i>=0)STORE[m][i]=doc;else STORE[m].push(doc);render();
+  const put=()=>db.collection(m).doc(docId(doc.id)).set(JSON.parse(JSON.stringify(doc)));
+  try{await put();if(msg)toast(msg);return true}
+  catch(err){
+    if(err?.code==="unavailable"){await new Promise(r=>setTimeout(r,800+Math.random()*800));try{await put();if(msg)toast(msg);return true}catch(e2){err=e2}}
+    if(err?.code==="invalid_argument"){canWrite=false;toast("You can view this run sheet but not edit it.")}
+    else if(err?.code==="quota_exceeded")toast("The shared store is full. Delete unused rows, then try again.");
+    else toast("Couldn't save. Check your connection and try again.");
+    merge(m);render();return false}
+}
+
+/* ---------- Excel export ---------- */
+const WID={People:[12,28,12,42,30,18,20,30,22],Schedule:[12,15.6,10,13,20,38,24,13,30,45,22,30,42,30,14,42],Transportation:[14,16.5,10,12,16,18,13,28,18,24,13,45,36,34,30,14,42],Venues:[12,34,20,24,38,13,30,48,30],Restaurants:[14,13,36,16,10,24,45,24,70,28,48,30,45],Cars:[10,24,18,16,30,16],"Change Log":[14,12,12,22,40,40,20]};
+const xDate=iso=>{if(!iso)return null;const[y,mo,d]=iso.split("-").map(Number);return new Date(Date.UTC(y,mo-1,d))};
+const xTime=s=>s&&/^\d\d:\d\d/.test(s)?mins(s)/1440:(s||null);
+function sheet(wb,name,cols,rows){
+  const ws=wb.addWorksheet(name,{views:[{state:"frozen",ySplit:1}]});
+  ws.columns=cols.map((h,i)=>({header:h,key:"c"+i,width:(WID[name]||[])[i]||16}));
+  const hr=ws.getRow(1);hr.height=32.15;
+  hr.eachCell(c=>{c.font={name:"Calibri",size:11,bold:true,color:{argb:"FFFFFFFF"}};c.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF20344D"}};c.alignment={wrapText:true,vertical:"middle"}});
+  rows.forEach(r=>{const row=ws.addRow(r.map(v=>v===""?null:v));
+    row.eachCell({includeEmpty:true},(c,i)=>{const h=cols[i-1];c.font={name:"Calibri",size:11};c.alignment={wrapText:true,vertical:"top"};
+      if(h==="Date")c.numFmt="ddd\\,\\ dd\\ mmm\\ yyyy";if(h==="Start"||h==="End")c.numFmt="h:mm AM/PM"})});
+}
+function modRows(m,extra={}){ // original column order from the workbook
+  const cols=S.cols[M[m].sheet],hk=Object.fromEntries(M[m].fields.map(z=>[z.h,z.k]));
+  const rows=live(m).slice().sort((a,b)=>m==="events"||m==="restaurants"?((a.date||"")+(a.start||"")).localeCompare((b.date||"")+(b.start||"")):a.id.localeCompare(b.id,undefined,{numeric:true}));
+  return [cols,rows.map(x=>cols.map(h=>{if(h===M[m].idH)return x.id;if(extra[h])return extra[h](x);const k=hk[h];const v=x[k]??"";return h==="Date"?xDate(v):(h==="Start"||h==="End")?xTime(v):v}))];
+}
+async function exportXlsx(){
+  if(!window.ExcelJS){toast("The Excel library didn't load. Check your connection and reload.");return}
+  const btn=$("xlsBtn");btn.disabled=true;btn.textContent="Building…";
+  try{
+    const wb=new ExcelJS.Workbook();wb.creator="THD Visit run sheet";
+    const clashNote={};V.C.forEach(({a,b,gap})=>{[[a,b],[b,a]].forEach(([x,o])=>(clashNote[x.evt]??=[]).push(`${x.car} overlaps ${o.evt} (${gap} min)`))});
+    sheet(wb,"People",...modRows("people"));
+    sheet(wb,"Schedule",...modRows("events",{"Review / Conflict":e=>[e.review,...(clashNote[e.id]||[])].filter(Boolean).join("; ")}));
+    const T=trips().sort((a,b)=>(a.date+a.start+a.car).localeCompare(b.date+b.start+b.car));
+    sheet(wb,"Transportation",S.cols.Transportation,T.map(t=>[t.id,xDate(t.date),xTime(t.start),t.car,t.plate,t.driver,t.driverPhone,t.pic,t.picPhone,t.origin,t.destination,t.group,t.purpose,t.details,t.source,t.status,(clashNote[t.evt]||[]).filter(n=>n.startsWith(t.car+" ")).join("; ")]));
+    sheet(wb,"Venues",...modRows("venues"));
+    sheet(wb,"Restaurants",...modRows("restaurants"));
+    sheet(wb,"Cars",...modRows("cars"));
+    const log=[];MODS.forEach(m=>STORE[m].forEach(x=>{const c=changeOf(m,x);if(!c)return;const at=x.updatedAt?new Date(x.updatedAt).toLocaleString("en-GB"):"";
+      if(c.fields)c.fields.forEach(k=>log.push([M[m].sheet,x.id,c.type,byF(m,k).h,x.orig[k]||"",x[k]||"",at]));
+      else log.push([M[m].sheet,x.id,c.type,"",c.type==="Deleted"?label(x):"",c.type==="Added"?[x.date,x.start,label(x)].filter(Boolean).join(" "):"",at])}));
+    sheet(wb,"Change Log",["Sheet","ID","Change","Field","Before","After","Updated At"],log);
+    const blob=new Blob([await wb.xlsx.writeBuffer()]);
+    const d=new Date(),p=n=>String(n).padStart(2,"0"),filename=`THD_Visit_Normalized_Data_${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.xlsx`;
+    const dl=await dlP;
+    if(dl){try{await dl.save({filename,data:blob});toast("Excel file saved.")}catch(err){if(err?.code==="declined");else if(err?.code==="rate_limited")toast("A save prompt is already open.");else toast("Download isn't available here.")}}
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+  }catch(err){console.error(err);toast("Couldn't build the Excel file.")}
+  finally{btn.disabled=false;btn.textContent="Export to Excel"}
+}
+
+/* ---------- boot (Supabase) ---------- */
+const SB_URL="https://hivklrirmsxkpjozoqwd.supabase.co",SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpdmtscmlybXN4a3Bqb3pvcXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MDEwNTUsImV4cCI6MjEwMDI3NzA1NX0.THL_yq8sVL2nMWou5AlJXtFsGGw4q1bSAi39I0BMMHk";
+const EDIT_TOKEN=(()=>{const m=(location.hash||"").match(/edit=([A-Za-z0-9_-]{8,})/);return m?m[1]:null})();
+const dlP=Promise.resolve(null);
+function makeDb(sb){
+  return {collection:m=>({
+    onSnapshot(cb,errcb){
+      const map=new Map();
+      const emit=()=>cb({empty:!map.size,docs:[...map.values()].map(d=>({id:d.id,exists:true,data:()=>JSON.parse(JSON.stringify(d))}))});
+      const load=()=>sb.from("thd_records").select("id,data").eq("collection",m).then(({data,error})=>{if(error){errcb&&errcb(error);return}data.forEach(r=>map.set(r.id,r.data));emit()});
+      sb.channel("thd-"+m).on("postgres_changes",{event:"*",schema:"public",table:"thd_records",filter:"collection=eq."+m},p=>{if(p.new&&p.new.id){map.set(p.new.id,p.new.data);emit()}})
+        .subscribe(st=>{if(st==="SUBSCRIBED")load();else if(st==="CHANNEL_ERROR"||st==="TIMED_OUT"){load()}});
+      document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")load()});
+      return()=>{};
+    },
+    doc:()=>({set:async d=>{
+      const {error}=await sb.rpc("thd_save",{p_token:EDIT_TOKEN||"",p_collection:m,p_id:d.id,p_data:d});
+      if(error){const e=new Error(error.message);e.code=/not allowed/i.test(error.message)?"invalid_argument":"unavailable";throw e}
+    }})
+  })};
+}
+function setSync(state){const s=$("sync");s.className="sync"+(state==="live"?" live":"");s.lastChild.textContent=state==="live"?(canWrite?"Live, edit mode":"Live, view only"):state==="offline"?"Offline, showing last loaded copy":"Loading…";
+  const b=$("modeBadge");if(b){b.textContent=canWrite?"Edit link":"View only";b.className="mode "+(canWrite?"edit":"view")}}
+render();setSync("loading");
+(async()=>{
+  if(!window.supabase){setSync("offline");toast("Couldn't reach the data service. Check your connection and reload.");return}
+  const sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});
+  db=makeDb(sb);
+  if(EDIT_TOKEN){const {data,error}=await sb.rpc("thd_check_token",{p_token:EDIT_TOKEN});canWrite=!error&&data===true;if(!canWrite)toast("This edit link isn't valid. Showing view only.")}
+  else canWrite=false;
+  if(canWrite){ // first admin visit: copy the built-in data into the shared store
+    const {data:have,error:e0}=await sb.from("thd_records").select("collection,id");
+    if(!e0){const got=new Set(have.map(r=>r.collection+"|"+r.id));const miss=MODS.flatMap(m=>S.snap[m].filter(x=>!got.has(m+"|"+x.id)).map(x=>[m,x]));
+      if(have.length===0&&miss.length){toast("Setting up shared data…");for(const [m,x] of miss){await sb.rpc("thd_save",{p_token:EDIT_TOKEN,p_collection:m,p_id:x.id,p_data:x})}toast("Shared data is ready.")}}}
+  let lost=false;
+  MODS.forEach(m=>db.collection(m).onSnapshot(snap=>{lost=false;DBDOCS[m]=snap.docs.map(x=>x.data());merge(m);setSync("live");if(!$("dlg").open)render();else V=buildFlags()},
+    err=>{if(!lost){lost=true;setSync("offline");toast("Lost connection to the shared data. Reload to reconnect.")}}));
+})();
+
+</script>
+</body>
+</html>
