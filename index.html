@@ -208,6 +208,22 @@ td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
 @media (max-width:640px){.fgrid{grid-template-columns:1fr 1fr}.fgrid .s2{grid-column:1/-1}}
 .mode{display:inline-block;vertical-align:middle;font:600 13px var(--cond);padding:2px 10px;margin-left:8px;letter-spacing:.02em}.mode.view{border:1px solid var(--line);color:var(--muted)}.mode.edit{background:var(--signal);color:#1B2433}
 @media print{.controls{position:static}.ev.mine::before{display:none}}
+/* co-editing: who has the edit link open, record locks, field clashes */
+.who{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
+.who[hidden]{display:none}
+.who.warn{background:var(--signal-soft);border:1px solid var(--signal);color:var(--ink);padding:5px 10px}
+.who .linkish{font-size:12.5px}
+.who .ico{font:600 12px var(--cond);background:var(--signal);color:#1B2433;padding:0 6px}
+.lock{font:600 11.5px var(--cond);background:var(--signal);color:#1B2433;padding:1px 7px;white-space:nowrap;border-radius:2px;max-width:150px;overflow:hidden;text-overflow:ellipsis;display:inline-block;vertical-align:middle}
+.ev .lock{position:absolute;right:0;top:40px}
+.carbox header .lock{position:absolute;right:12px;top:44px}
+td.rowact .lock{margin-right:6px}
+.edit.busy{border-color:var(--signal);color:var(--ink)}
+.warnbox.live{background:var(--signal-soft);color:var(--ink);border-left:4px solid var(--signal);margin:12px 20px 0}
+.warnbox.live.hard{background:var(--flag-soft);border-left-color:var(--flag)}
+.warnbox.live button{margin-left:8px;padding:2px 10px;font:600 12.5px var(--cond);border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
+.fclash{outline:2px solid var(--flag);outline-offset:3px;position:relative}
+.fclash::after{content:attr(data-who);position:absolute;right:0;top:-9px;font:600 11px var(--cond);background:var(--flag);color:#fff;padding:0 6px;z-index:1;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -224,11 +240,13 @@ td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
     <label class="me"><input type="checkbox" id="me"> Only my assignments</label>
     <button class="btn" id="xlsBtn">Export to Excel</button>
     <span class="sync" id="sync"><i></i>Loading…</span>
+    <span class="who" id="who" hidden></span>
   </div>
 </div>
 <main id="main"></main>
 <footer>Source: THD_Visit_Normalized_Data.xlsx. Changes made with the edit link appear for everyone right away. Car trips are rebuilt from each event's cars and each car's driver and PIC. Export to Excel downloads the workbook with the original sheets plus Cars and a Change Log. Times are local (ICT, UTC+7).</footer>
 <dialog id="dlg"><div class="dlg-h"><h2 id="dlgTitle">Edit event</h2><span id="dlgId"></span></div>
+<div class="warnbox live" id="dlgLive" role="alert"></div>
 <div class="fgrid" id="fgrid"></div>
 <div class="miss" id="dlgMiss"></div>
 <div class="warnbox" id="dlgWarn" role="status"></div>
@@ -351,7 +369,9 @@ let V;
 const filt=rows=>rows.filter(r=>(!q||text(r).toLowerCase().includes(q))&&(!me||isMine(r)));
 const empty=()=>`<div class="empty">Nothing matches${q?` “${esc(q)}”`:""}${me?" in your assignments":""}. Clear the search or turn off “Only my assignments”.</div>`;
 const addBtn=(m,lbl,extra="")=>canWrite?`<button class="btn ghost" data-add="${m}" ${extra}>${lbl}</button>`:"";
-const editBtn=(m,id,what)=>canWrite?`<button class="edit" data-mod="${m}" data-edit="${esc(id)}" aria-label="Edit ${esc(what)}">Edit</button>`:"";
+const editBtn=(m,id,what)=>{if(!canWrite)return"";const b=busyBy(m,id);
+  return (b.length?`<span class="lock" title="${esc(b.join(", "))} ${b.length>1?"have":"has"} this open in the editor right now">${esc(b[0])}${b.length>1?" +"+(b.length-1):""} editing</span>`:"")+
+   `<button class="edit${b.length?" busy":""}" data-mod="${m}" data-edit="${esc(id)}" aria-label="Edit ${esc(what)}">Edit</button>`};
 const tagFor=(m,x)=>{const c=changeOf(m,x);return x.status==="Cancelled"?`<span class="tag cxl">Cancelled</span>`:c?.type==="Added"?`<span class="tag new">New</span>`:c?.type==="Edited"?`<span class="tag chg" title="Changed: ${esc(c.fields.map(k=>byF(m,k).h).join(", "))}">Changed</span>`:""};
 const bar=(title,btns)=>`<div class="bar"><h2 class="sec" style="margin:0">${title}</h2><div>${btns}</div></div>`;
 
@@ -597,8 +617,9 @@ function openEditor(m,x,day){PK={};
   html+=mod.fields.map(z=>fieldHtml(z,v[z.k]??"")).join("");
   $("fgrid").innerHTML=html;initPickers();
   $("dlgDel").hidden=!x;
-  checkForm();$("dlg").showModal();
+  checkForm();if(!$("dlg").open)$("dlg").showModal();
   const first=$("fgrid").querySelector("input:not([disabled]),select,textarea");first&&first.focus();
+  presenceTrack();liveWarn();
 }
 function readForm(){
   const {m}=ed,o={};
@@ -629,7 +650,9 @@ function nextId(m){
 $("dlg").addEventListener("input",checkForm);
 $("dlg").addEventListener("change",checkForm);
 $("dlgCancel").onclick=()=>$("dlg").close();
-$("dlg").addEventListener("close",()=>ed=null);
+$("dlg").addEventListener("close",()=>{ed=null;FOCUS=null;$("dlgLive").innerHTML="";presenceTrack()});
+$("fgrid").addEventListener("focusin",e=>{const k=fieldKeyOf(e.target);if(k!==FOCUS){FOCUS=k;presenceTrack();liveWarn()}});
+$("dlgLive").onclick=e=>{if(e.target.id==="dlgReload"&&ed&&ed.remote)openEditor(ed.m,ed.remote)};
 $("dlgDel").onclick=async()=>{
   const {m,x}=ed;
   let extra="";if(m==="cars"){const n=trips().filter(t=>t.car===x.id).length;if(n)extra=` It has ${n} trip${n>1?"s":""}; those events will lose this car.`}
@@ -637,6 +660,7 @@ $("dlgDel").onclick=async()=>{
   if(await save(m,{...x,deleted:true},"Deleted "+x.id))$("dlg").close();
 };
 $("dlgSave").onclick=async()=>{
+  if(ed.remote&&!confirm(`${ed.remoteBy||"Someone else"} changed this ${M[ed.m].noun} while you had it open. Save anyway and overwrite their version?`))return;
   const {m,x}=ed,o=readForm();let doc;
   const id=M[m].manualId?(x?x.id:o.__id):null;delete o.__id;
   if(x)doc={...x,...o};
@@ -713,6 +737,60 @@ async function exportXlsx(){
   finally{btn.disabled=false;btn.textContent="Export to Excel"}
 }
 
+/* ---------- co-editing: presence (who has the edit link open) + conflict warnings ---------- */
+const CID=(crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2))+"-"+Date.now().toString(36);
+let WHO="",FOCUS=null,pres=null,presReady=false,PEERS={},peersKey="";
+const getName=()=>{try{return localStorage.getItem("thd-editor")||""}catch(e){return ""}};
+function setName(n){WHO=(n||"").trim().slice(0,40)||"Editor";try{localStorage.setItem("thd-editor",WHO)}catch(e){}presenceTrack();whoRender()}
+function askName(){const n=prompt("Your name, shown to other people who use the edit link:",WHO||"");if(n!==null)setName(n)}
+const fieldName=(m,k)=>k?(byF(m,k)?.h||k):"";
+function fieldKeyOf(el){const pp=el.closest(".pp");if(pp)return pp.dataset.k;const c=el.closest("[id^='f_']");if(!c)return null;const k=c.id.slice(2).replace(/_other$/,"");return k==="_id"?null:k}
+function fieldBox(k){const el=$("f_"+k)||ppEl(k);return el?(el.closest("label,.pp")||el.parentElement):null}
+function editingLabel(){if(!ed)return null;const {m,x}=ed;return {m,id:x?x.id:null,k:FOCUS,t:x?`${x.id} ${label(x)}`.trim():`a new ${M[m].noun}`}}
+function presenceTrack(){if(!pres||!presReady)return;pres.track({name:WHO,editing:editingLabel(),at:Date.now()}).catch(()=>{})}
+function presenceStart(sb){
+  pres=sb.channel("thd-presence",{config:{presence:{key:CID}}});
+  pres.on("presence",{event:"sync"},()=>{
+    const st=pres.presenceState(),next={};
+    Object.entries(st).forEach(([k,arr])=>{const p=arr[arr.length-1];if(k!==CID&&p&&p.name)next[k]=p});
+    const before=PEERS;PEERS=next;
+    if(peersKey){Object.keys(next).filter(k=>!(k in before)).forEach(k=>toast(`${next[k].name} opened the edit link.`));
+      Object.keys(before).filter(k=>!(k in next)).forEach(k=>toast(`${before[k].name} closed the edit link.`))}
+    const key=JSON.stringify(Object.values(next).map(p=>[p.name,p.editing]));
+    if(key!==peersKey){peersKey=key;whoRender();if($("dlg").open)liveWarn();else render()}
+  }).subscribe(st=>{if(st==="SUBSCRIBED"){presReady=true;presenceTrack()}else if(st==="CLOSED"||st==="CHANNEL_ERROR"||st==="TIMED_OUT")presReady=false});
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")presenceTrack()});
+}
+const peersOn=(m,id)=>Object.values(PEERS).filter(p=>p.editing&&p.editing.m===m&&p.editing.id===id);
+const busyBy=(m,id)=>[...new Set(peersOn(m,id).map(p=>p.name))];
+function whoRender(){
+  const w=$("who");if(!canWrite){w.hidden=true;return}
+  const P=Object.values(PEERS);w.hidden=false;w.className="who"+(P.length?" warn":"");
+  const me=`<button type="button" class="linkish" id="whoMe" title="Change the name other editors see">You: ${esc(WHO)}</button>`;
+  if(!P.length){w.innerHTML=me+`<span>· only you have the edit link open</span>`;return}
+  const L=P.map(p=>`<b>${esc(p.name)}</b>${p.editing?` (editing ${esc(p.editing.t)}${p.editing.k?`, ${esc(fieldName(p.editing.m,p.editing.k))}`:""})`:""}`);
+  w.innerHTML=me+`<span class="ico">!</span><span>${P.length} other ${P.length>1?"people have":"person has"} the edit link open: ${L.join(", ")}</span>`;
+}
+$("who").onclick=e=>{if(e.target.closest("#whoMe"))askName()};
+function liveWarn(){ // inside the editor: same record, same field, or changed underneath you
+  if(!ed)return;const {m,x}=ed,box=$("dlgLive"),msgs=[];let hard=false;
+  $("fgrid").querySelectorAll(".fclash").forEach(el=>{el.classList.remove("fclash");el.removeAttribute("data-who")});
+  const P=x?peersOn(m,x.id):[];
+  if(P.length){const names=busyBy(m,x.id).join(", ");
+    msgs.push(`<b>${esc(names)}</b> ${P.length>1?"are":"is"} also editing this ${M[m].noun} right now. Whoever saves last overwrites the other's changes: agree who edits it, or save quickly and tell them.`);
+    P.filter(p=>p.editing.k).forEach(p=>{const b=fieldBox(p.editing.k);if(b){b.classList.add("fclash");b.dataset.who=p.name+" is typing here"}
+      if(p.editing.k===FOCUS){hard=true;msgs.push(`You and <b>${esc(p.name)}</b> are both in <b>${esc(fieldName(m,p.editing.k))}</b> at the same time.`)}})}
+  if(ed.remote){hard=true;const ch=M[m].fields.filter(z=>(ed.remote[z.k]??"")!==(x[z.k]??"")).map(z=>z.h);
+    msgs.push(`This ${M[m].noun} was changed by <b>${esc(ed.remoteBy||"someone else")}</b> while you had it open${ch.length?` (${esc(ch.join(", "))})`:""}. Saving will overwrite their version.<button type="button" id="dlgReload">Load their version</button>`)}
+  box.className="warnbox live"+(hard?" hard":"");box.innerHTML=msgs.join("<br>");
+}
+function liveCheck(m){ // a live update arrived for the record that is open in the editor
+  if(!ed||ed.m!==m||!ed.x)return;const fresh=STORE[m].find(y=>y.id===ed.x.id);
+  if(!fresh||JSON.stringify(fresh)===JSON.stringify(ed.x))return;
+  if(ed.remote&&JSON.stringify(fresh)===JSON.stringify(ed.remote))return;
+  ed.remote=fresh;ed.remoteBy=busyBy(m,ed.x.id)[0]||"";liveWarn();
+}
+
 /* ---------- boot (Supabase) ---------- */
 const SB_URL="https://hivklrirmsxkpjozoqwd.supabase.co",SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpdmtscmlybXN4a3Bqb3pvcXdkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3MDEwNTUsImV4cCI6MjEwMDI3NzA1NX0.THL_yq8sVL2nMWou5AlJXtFsGGw4q1bSAi39I0BMMHk";
 const EDIT_TOKEN=(()=>{const m=(location.hash||"").match(/edit=([A-Za-z0-9_-]{8,})/);return m?m[1]:null})();
@@ -743,12 +821,13 @@ render();setSync("loading");
   db=makeDb(sb);
   if(EDIT_TOKEN){const {data,error}=await sb.rpc("thd_check_token",{p_token:EDIT_TOKEN});canWrite=!error&&data===true;if(!canWrite)toast("This edit link isn't valid. Showing view only.")}
   else canWrite=false;
+  if(canWrite){WHO=getName();if(!WHO)askName();if(!WHO)setName("Editor");presenceStart(sb);whoRender()}
   if(canWrite){ // first admin visit: copy the built-in data into the shared store
     const {data:have,error:e0}=await sb.from("thd_records").select("collection,id");
     if(!e0){const got=new Set(have.map(r=>r.collection+"|"+r.id));const miss=MODS.flatMap(m=>S.snap[m].filter(x=>!got.has(m+"|"+x.id)).map(x=>[m,x]));
       if(have.length===0&&miss.length){toast("Setting up shared data…");for(const [m,x] of miss){await sb.rpc("thd_save",{p_token:EDIT_TOKEN,p_collection:m,p_id:x.id,p_data:x})}toast("Shared data is ready.")}}}
   let lost=false;
-  MODS.forEach(m=>db.collection(m).onSnapshot(snap=>{lost=false;DBDOCS[m]=snap.docs.map(x=>x.data());merge(m);setSync("live");if(!$("dlg").open)render();else V=buildFlags()},
+  MODS.forEach(m=>db.collection(m).onSnapshot(snap=>{lost=false;DBDOCS[m]=snap.docs.map(x=>x.data());merge(m);setSync("live");if(!$("dlg").open)render();else{V=buildFlags();liveCheck(m)}},
     err=>{if(!lost){lost=true;setSync("offline");toast("Lost connection to the shared data. Reload to reconnect.")}}));
 })();
 

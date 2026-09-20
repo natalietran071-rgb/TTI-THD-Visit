@@ -31,6 +31,16 @@ Preset *Other*, no build command, root `./`. Every push to `claude/practical-vol
 4. Open the view URL; header badge should say **View only** and status **Live, view only**.
 5. Open the admin URL; badge should say **Edit link**.
 
+## Co-editing warnings (edit link only)
+- On first use of the edit link the page asks for your name (stored in the browser; click **You: …** to change it).
+- Everyone with the edit link open is shown in the bar under the controls, with the record and field they are in.
+  A toast appears when someone opens or closes the edit link.
+- A record someone else has open shows a **… editing** badge next to its Edit button.
+- Inside the editor: a warning when someone else has the same record open, a red outline on the field they are typing in,
+  a stronger warning when you are both in the same field, and a warning (with **Load their version**) when the record
+  was saved by someone else while you had it open. Save then asks before overwriting.
+- Built on Supabase Realtime Presence (channel `thd-presence`); no schema change and nothing is stored.
+
 ## Maintenance
 - Rotate edit code: `supabase/rotate-edit-token.sql`.
 - Supabase Free pauses projects after ~1 week idle; resume from the dashboard if the page shows "Couldn't reach the data service".
