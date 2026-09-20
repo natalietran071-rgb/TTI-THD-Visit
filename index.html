@@ -215,6 +215,16 @@ td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
 @media (max-width:640px){.fgrid{grid-template-columns:1fr 1fr}.fgrid .s2{grid-column:1/-1}}
 .mode{display:inline-block;vertical-align:middle;font:600 13px var(--cond);padding:2px 10px;margin-left:8px;letter-spacing:.02em}.mode.view{border:1px solid var(--line);color:var(--muted)}.mode.edit{background:var(--signal);color:#1B2433}
 @media print{.controls{position:static}.ev.mine::before{display:none}}
+/* teams: Mil / Ryobi filter, badges, editor ticks, quick company chips */
+.controls .chips{margin:0}
+.teamchips button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.teambadge{font:600 11.5px var(--cond);padding:0 6px;margin-left:6px;vertical-align:2px;border:1.5px solid currentColor;border-radius:2px}
+.team-mil{color:var(--c3)}.team-ryobi{color:var(--c4)}
+.teampick label{--cc:currentColor;font-weight:600}
+.teampick label:has(input:checked){border-color:currentColor;box-shadow:inset 0 -3px 0 currentColor}
+.quick{display:flex;gap:4px;margin-top:4px}
+.quick button{font:500 12px var(--sans);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:1px 8px;cursor:pointer;border-radius:10px}
+.quick button:hover{border-color:var(--ink)}
 /* co-editing: who has the edit link open, record locks, field clashes */
 .who{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap;width:100%}
 .who[hidden]{display:none}
@@ -244,6 +254,7 @@ td.rowact .lock{margin-right:6px}
   <div class="tabs" role="tablist" id="tabs"></div>
   <div class="right">
     <input type="search" id="q" placeholder="Search name, car, venue, flight" aria-label="Search">
+    <div class="chips teamchips" id="teamPick" role="group" aria-label="Team">All Mil Ryobi</div>
     <label class="me"><input type="checkbox" id="me"> Only my assignments</label>
     <button class="btn" id="xlsBtn">Export to Excel</button>
     <button class="btn ghost" id="refreshBtn" title="Fetch the latest shared data now">Refresh</button>
@@ -264,7 +275,7 @@ td.rowact .lock{margin-right:6px}
 <div class="toast" id="toast" hidden role="status"></div>
 </div>
 <script>
-const S={"snap":{"events":[],"people":[],"venues":[],"restaurants":[],"cars":[]},"cols":{"People":["Person ID","Full Name","Company","Title","Event Role","Phone","Assigned Vehicle","Source","Review Status"],"Schedule":["Event ID","Date","Start","End","Category","Activity / Task","Origin","Destination","Venue","Participants / Group","Vehicle","PIC / Owner","Details","Source","Status","Review / Conflict"],"Transportation":["Transport ID","Date","Start","Car","Plate","Driver","Driver Phone","PIC","PIC Phone","Origin","Destination","Passengers / Group","Purpose","Flight / Details","Source","Status","Review / Conflict"],"Venues":["Venue ID","Venue Name","Type","Area","Contact","Primary Use","Source","Map / Link","Review Status"],"Restaurants":["Restaurant ID","Date","Restaurant / Meal Location","Meal","Start","Capacity","Participants / Group","Booking Owner","Menu Summary","Service Provider","Map / Link","Source","Review / Conflict"],"Cars":["Car","Plate","Driver","Driver Phone","PIC","PIC Phone"]}};
+const S={"snap":{"events":[],"people":[],"venues":[],"restaurants":[],"cars":[]},"cols":{"People":["Person ID","Full Name","Company","Title","Event Role","Phone","Assigned Vehicle","Source","Review Status"],"Schedule":["Event ID","Date","Start","End","Category","Activity / Task","Origin","Destination","Venue","Participants / Group","Vehicle","PIC / Owner","Details","Source","Status","Review / Conflict","Team"],"Transportation":["Transport ID","Date","Start","Car","Plate","Driver","Driver Phone","PIC","PIC Phone","Origin","Destination","Passengers / Group","Purpose","Flight / Details","Source","Status","Review / Conflict"],"Venues":["Venue ID","Venue Name","Type","Area","Contact","Primary Use","Source","Map / Link","Review Status"],"Restaurants":["Restaurant ID","Date","Restaurant / Meal Location","Meal","Start","Capacity","Participants / Group","Booking Owner","Menu Summary","Service Provider","Map / Link","Source","Review / Conflict","Team"],"Cars":["Car","Plate","Driver","Driver Phone","PIC","PIC Phone"]}};
 const ME="Natalie";
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -286,18 +297,18 @@ const M={
   f("date","Date","date",1,{req:1}),f("start","Start","time",1,{req:1}),f("end","End","time",1),f("status","Status","select",1,{opts:["Planned","Confirmed","Changed","Cancelled"]}),
   f("category","Category","text",2,{dl:"cat"}),f("activity","Activity / Task","text",2,{req:1}),f("origin","Origin","text",2,{dl:"place"}),f("destination","Destination","text",2,{dl:"place"}),
   f("venue","Venue","text",4,{dl:"place"}),f("pic","PIC / Owner","people",4),f("participants","Participants / Group","people",4,{groups:1}),f("vehicle","Vehicle","cars",4),
-  f("details","Details","text",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
+  f("details","Details","text",2),f("team","Team","team",2,{hint:"Leave both unticked if it applies to everyone"}),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
  cars:{sheet:"Cars",noun:"car",idH:"Car",prefix:"Car ",manualId:true,fields:[
   f("plate","Plate","text",2,{req:1}),f("driver","Driver","person",2,{role:"Driver",fill:"driverPhone"}),f("driverPhone","Driver Phone","tel",2),f("pic","PIC","person",2,{role:"Car PIC",fill:"picPhone"}),f("picPhone","PIC Phone","tel",2)]},
  people:{sheet:"People",noun:"person",idH:"Person ID",prefix:"PER-",fields:[
-  f("name","Full Name","text",2,{req:1}),f("company","Company","text",1,{dl:"company"}),f("phone","Phone","tel",1),f("title","Title","text",4),
+  f("name","Full Name","text",2,{req:1}),f("company","Company","text",1,{dl:"company",quick:["Mil","Ryobi"]}),f("phone","Phone","tel",1),f("title","Title","text",4),
   f("role","Event Role","text",4,{dl:"role",hint:"Separate several roles with ;"}),f("vehicle","Assigned Vehicle","cars",4),f("source","Source","text",2),f("review","Review Status","text",2)]},
  venues:{sheet:"Venues",noun:"venue",idH:"Venue ID",prefix:"VEN-",fields:[
   f("name","Venue Name","text",2,{req:1}),f("type","Type","text",1,{dl:"vtype"}),f("area","Area","text",1,{dl:"area"}),f("use","Primary Use","text",2),f("contact","Contact","contact",4),f("map","Map / Link","url",4),f("source","Source","text",2),f("review","Review Status","text",2)]},
  restaurants:{sheet:"Restaurants",noun:"meal",idH:"Restaurant ID",prefix:"RST-",fields:[
   f("date","Date","date",1,{req:1}),f("start","Start","time",1),f("meal","Meal","text",1,{dl:"meal"}),f("capacity","Capacity","text",1),
   f("place","Restaurant / Meal Location","text",4,{req:1,dl:"place"}),f("owner","Booking Owner","people",4),f("participants","Participants / Group","people",4,{groups:1}),
-  f("menu","Menu Summary","textarea",4),f("provider","Service Provider","text",2),f("map","Map / Link","url",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
+  f("menu","Menu Summary","textarea",4),f("team","Team","team",2,{hint:"Leave both unticked if it applies to everyone"}),f("provider","Service Provider","text",2),f("map","Map / Link","url",2),f("review","Review / Conflict","text",2),f("source","Source","text",2)]},
 };
 const MODS=Object.keys(M);
 
@@ -308,6 +319,9 @@ function merge(m){ // snapshot first, shared store wins by id
   const map=new Map(S.snap[m].map(x=>[x.id,x]));(DBDOCS[m]||[]).forEach(x=>map.set(x.id,x));STORE[m]=[...map.values()];
 }
 let db=null,canWrite=false,tab="schedule",q="",me=false,role="All";
+const TEAMS=["Mil","Ryobi"];let team=(()=>{try{return TEAMS.includes(localStorage.getItem("thd-team"))?localStorage.getItem("thd-team"):"All"}catch(e){return "All"}})();
+const teamOk=r=>team==="All"||!("team" in r)||!r.team||list(r.team).includes(team); // untagged rows apply to everyone
+const teamBadges=v=>list(v).filter(t=>TEAMS.includes(t)).map(t=>`<span class="teambadge team-${t.toLowerCase()}">${t}</span>`).join("");
 const live=m=>STORE[m].filter(x=>!x.deleted);
 const EV=()=>live("events").sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start)||a.seq-b.seq);
 const CARS=()=>Object.fromEntries(live("cars").sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true})).map(c=>[c.id,c]));
@@ -374,7 +388,7 @@ function buildFlags(){
 
 /* ---------- views ---------- */
 let V;
-const filt=rows=>rows.filter(r=>(!q||text(r).toLowerCase().includes(q))&&(!me||isMine(r)));
+const filt=rows=>rows.filter(r=>(!q||text(r).toLowerCase().includes(q))&&(!me||isMine(r))&&teamOk(r));
 const empty=()=>`<div class="empty">Nothing matches${q?` “${esc(q)}”`:""}${me?" in your assignments":""}. Clear the search or turn off “Only my assignments”.</div>`;
 const addBtn=(m,lbl,extra="")=>canWrite?`<button class="btn ghost" data-add="${m}" ${extra}>${lbl}</button>`:"";
 const editBtn=(m,id,what)=>{if(!canWrite)return"";const b=busyBy(m,id);
@@ -413,7 +427,7 @@ function daySummary(rows){
 function evRow(e){
   const flag=/also|appears/i.test(e.details),n=nLinked(e.participants);
   return `<div class="ev ${isMine(e)?"mine":""} ${e.status==="Cancelled"?"cancelled":""}" id="ev-${esc(e.id)}"><div class="time">${esc(e.start)}${e.end?`<small>to ${esc(e.end)}</small>`:""}</div><div>
-     <h3><span class="cat">${esc(e.category)}</span>${esc(e.activity)}${tagFor("events",e)}</h3>
+     <h3><span class="cat">${esc(e.category)}</span>${esc(e.activity)}${teamBadges(e.team)}${tagFor("events",e)}</h3>
      ${e.origin||e.destination?`<div class="route">${esc(e.origin)} → ${esc(e.destination)}</div>`:e.venue?`<div class="route">@ ${esc(e.venue)}</div>`:""}
      <dl class="kv">
       ${e.pic?`<dt>PIC</dt><dd>${pchips(e.pic)}</dd>`:""}
@@ -463,7 +477,7 @@ function people(){
 function mealCard(r){
   const n=nLinked(r.participants);
   return `<div class="ev meal"><div class="time">${esc(r.start||"")}<small>${fmtDay(r.date)}</small></div><div>
-    <h3>${r.meal?`<span class="cat">${esc(r.meal)}</span>`:""}${esc(r.place)}${tagFor("restaurants",r)}</h3>
+    <h3>${r.meal?`<span class="cat">${esc(r.meal)}</span>`:""}${esc(r.place)}${teamBadges(r.team)}${tagFor("restaurants",r)}</h3>
     <dl class="kv">
      ${r.capacity?`<dt>Pax</dt><dd>${esc(r.capacity)}</dd>`:""}
      ${r.owner?`<dt>Booked by</dt><dd>${pchips(r.owner)}</dd>`:""}
@@ -506,6 +520,9 @@ function render(){
 $("tabs").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
 $("q").oninput=e=>{q=e.target.value.trim().toLowerCase();render()};
 $("me").onchange=e=>{me=e.target.checked;render()};
+function teamRender(){$("teamPick").innerHTML=["All",...TEAMS].map(t=>`<button type="button" aria-pressed="${t===team}" data-team="${t}">${t}</button>`).join("")}
+teamRender();
+$("teamPick").onclick=e=>{const b=e.target.closest("button");if(!b)return;team=b.dataset.team;try{localStorage.setItem("thd-team",team)}catch(x){}teamRender();render()};
 $("main").onclick=e=>{
   const b=e.target.closest("button");if(!b)return;
   if(b.dataset.q){q=b.dataset.q.toLowerCase();$("q").value=b.dataset.q;render();toast("Showing items with "+b.dataset.q+". Clear the search to see everything.");return}
@@ -530,13 +547,15 @@ function fillLists(){
   $("dl_place").innerHTML=u([...live("venues").map(v=>v.name),...live("events").flatMap(e=>[e.origin,e.destination,e.venue])]);
   $("dl_people").innerHTML=u([...P.map(p=>p.name),...live("events").map(e=>e.pic)]);
   $("dl_role").innerHTML=u(P.flatMap(p=>list(p.role)));
-  $("dl_company").innerHTML=u(P.map(p=>p.company));
+  $("dl_company").innerHTML=u([...TEAMS,...P.map(p=>p.company)]);
   $("dl_vtype").innerHTML=u(live("venues").map(v=>v.type));
   $("dl_area").innerHTML=u(live("venues").map(v=>v.area));
   $("dl_meal").innerHTML=u(live("restaurants").map(r=>r.meal));
 }
 function fieldHtml(z,val){
   const id="f_"+z.k,sp=z.span===4?"s4":z.span===2?"s2":"";
+  if(z.t==="team"){const cl=list(val);
+    return `<div class="${sp}"><div class="flabel">${esc(z.h)}${z.hint?` <span class="hint">${esc(z.hint)}</span>`:""}</div><div class="carpick teampick" id="${id}">${TEAMS.map(t=>`<label class="team-${t.toLowerCase()}"><input type="checkbox" value="${t}" ${cl.includes(t)?"checked":""}>${t}</label>`).join("")}</div></div>`}
   if(z.t==="cars"){const C=CARS(),cl=list(val);
     return `<div class="${sp}"><div class="flabel">${esc(z.h)}</div><div class="carpick" id="${id}">${Object.keys(C).map(c=>`<label style="--cc:var(${carVar(c)})"><input type="checkbox" value="${esc(c)}" ${cl.includes(c)?"checked":""}>${esc(c)}<span style="color:var(--muted);font-size:12px">${esc(C[c].driver)}</span></label>`).join("")}</div>
      <label style="margin-top:8px">Other vehicle note<input id="${id}_other" value="${esc(cl.filter(c=>!C[c]).join("; "))}" placeholder="e.g. Multiple, Bus"></label></div>`}
@@ -545,10 +564,11 @@ function fieldHtml(z,val){
   if(z.t==="select")return `<label class="${sp}">${esc(z.h)}<select id="${id}">${z.opts.map(o=>`<option ${o===val?"selected":""}>${o}</option>`).join("")}</select></label>`;
   if(z.t==="textarea")return `<label class="${sp}">${esc(z.h)}${hint}<textarea id="${id}">${esc(val)}</textarea></label>`;
   const type={date:"date",time:"time",tel:"tel",url:"url"}[z.t]||"text";
-  return `<label class="${sp}">${esc(z.h)}${req}${hint}<input id="${id}" type="${type}" value="${esc(val)}" ${z.dl?`list="dl_${z.dl}"`:""}></label>`;
+  const quick=z.quick?`<div class="quick">${z.quick.map(v=>`<button type="button" data-quick="${esc(v)}" data-for="${id}">${esc(v)}</button>`).join("")}</div>`:"";
+  return `<label class="${sp}">${esc(z.h)}${req}${hint}<input id="${id}" type="${type}" value="${esc(val)}" ${z.dl?`list="dl_${z.dl}"`:""}>${quick}</label>`;
 }
 const PFIELDS_T=["people","person","contact"];
-const GROUPS=[{l:"THD visitors",f:p=>p.company==="THD"},{l:"TTIVN executives",f:p=>p.company==="TTIVN"},{l:"Car PICs",f:p=>/Car PIC/.test(p.role)},{l:"Factory PICs",f:p=>/Factory PIC/.test(p.role)},{l:"Drivers",f:p=>/Driver/.test(p.role)}];
+const GROUPS=[{l:"THD visitors",f:p=>p.company==="THD"},{l:"TTIVN executives",f:p=>p.company==="TTIVN"},{l:"Mil",f:p=>p.company==="Mil"},{l:"Ryobi",f:p=>p.company==="Ryobi"},{l:"Car PICs",f:p=>/Car PIC/.test(p.role)},{l:"Factory PICs",f:p=>/Factory PIC/.test(p.role)},{l:"Drivers",f:p=>/Driver/.test(p.role)}];
 let PK={};
 function pickerHtml(z,val,sp){
   PK[z.k]={z,vals:pvals(z,val),multi:z.t==="people",phone:z.t==="contact"?contactParts(val).p:"",hi:0,opts:[]};
@@ -632,7 +652,8 @@ function openEditor(m,x,day){PK={};
 function readForm(){
   const {m}=ed,o={};
   M[m].fields.forEach(z=>{
-    if(z.t==="cars"){const cs=[...$("f_"+z.k).querySelectorAll("input:checked")].map(i=>i.value),other=$("f_"+z.k+"_other").value.trim();o[z.k]=[...cs,...(other?[other]:[])].join("; ")}
+    if(z.t==="team")o[z.k]=[...$("f_"+z.k).querySelectorAll("input:checked")].map(i=>i.value).join("; ");
+    else if(z.t==="cars"){const cs=[...$("f_"+z.k).querySelectorAll("input:checked")].map(i=>i.value),other=$("f_"+z.k+"_other").value.trim();o[z.k]=[...cs,...(other?[other]:[])].join("; ")}
     else if(PFIELDS_T.includes(z.t)){const s=PK[z.k];if(z.t==="contact"){const n=s.vals[0]||"";const p=findP(n);const ph=(p&&p.phone)||s.phone;o[z.k]=n?(ph?`${p?p.name:n} | ${ph}`:(p?p.name:n)):""}else o[z.k]=s.vals.map(v=>{const p=findP(v);return p?p.name:v}).join("; ")}
     else o[z.k]=$("f_"+z.k).value.trim()});
   if(M[m].manualId)o.__id=$("f__id").value.trim();
@@ -655,6 +676,7 @@ function nextId(m){
   const p=M[m].prefix,n=Math.max(0,...STORE[m].map(x=>parseInt(x.id.replace(/\D/g,""),10)||0))+1;
   return p+String(n).padStart(m==="cars"?2:3,"0");
 }
+$("fgrid").addEventListener("click",e=>{const b=e.target.closest("button[data-quick]");if(!b)return;e.preventDefault();const i=$(b.dataset.for);i.value=b.dataset.quick;i.dispatchEvent(new Event("input",{bubbles:true}));i.focus()});
 $("dlg").addEventListener("input",checkForm);
 $("dlg").addEventListener("change",checkForm);
 $("dlgCancel").onclick=()=>$("dlg").close();
@@ -702,7 +724,7 @@ async function save(m,doc,msg){
 }
 
 /* ---------- Excel export ---------- */
-const WID={People:[12,28,12,42,30,18,20,30,22],Schedule:[12,15.6,10,13,20,38,24,13,30,45,22,30,42,30,14,42],Transportation:[14,16.5,10,12,16,18,13,28,18,24,13,45,36,34,30,14,42],Venues:[12,34,20,24,38,13,30,48,30],Restaurants:[14,13,36,16,10,24,45,24,70,28,48,30,45],Cars:[10,24,18,16,30,16],"Change Log":[14,12,12,22,40,40,20]};
+const WID={People:[12,28,12,42,30,18,20,30,22],Schedule:[12,15.6,10,13,20,38,24,13,30,45,22,30,42,30,14,42,12],Transportation:[14,16.5,10,12,16,18,13,28,18,24,13,45,36,34,30,14,42],Venues:[12,34,20,24,38,13,30,48,30],Restaurants:[14,13,36,16,10,24,45,24,70,28,48,30,45,12],Cars:[10,24,18,16,30,16],"Change Log":[14,12,12,22,40,40,20]};
 const xDate=iso=>{if(!iso)return null;const[y,mo,d]=iso.split("-").map(Number);return new Date(Date.UTC(y,mo-1,d))};
 const xTime=s=>s&&/^\d\d:\d\d/.test(s)?mins(s)/1440:(s||null);
 function sheet(wb,name,cols,rows){
