@@ -21,7 +21,8 @@ Static `index.html` + Supabase for live shared data. No build step.
 ## Deploy (GitHub Pages)
 1. Repo: `natalietran071-rgb/TTI-THD-Visit` (public).
 2. Push `index.html`, `README.md`, `supabase/`, `.gitignore` to `main`.
-3. `.github/workflows/pages.yml` publishes `index.html` to GitHub Pages on every push (Settings → Pages → Source must be **GitHub Actions**; the workflow enables it on first run).
+3. One-time: Settings → Pages → Source → **GitHub Actions**. Then Actions → “Deploy to GitHub Pages” → Re-run (or push any change).
+   `.github/workflows/pages.yml` publishes `index.html` on every push after that.
 4. Open the view URL; header badge should say **View only** and status **Live, view only**.
 5. Open the admin URL; badge should say **Edit link**.
 

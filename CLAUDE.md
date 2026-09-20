@@ -2,13 +2,12 @@
 
 Goal: publish this folder to GitHub Pages so the run sheet is public without sign-in.
 
-1. `gh auth status` (ask the user to run `gh auth login` if needed).
-2. `git init && git add index.html README.md CLAUDE.md supabase .gitignore && git commit -m "THD Visit run sheet"`
-   - Never add `SECRETS.local.md`.
-3. `gh repo create natalietran071-rgb/TTI-THD-Visit --public --source=. --push`
-4. Enable Pages: `gh api -X POST repos/natalietran071-rgb/TTI-THD-Visit/pages -f "source[branch]=main" -f "source[path]=/"`
-5. Wait for `gh api repos/natalietran071-rgb/TTI-THD-Visit/pages` to report `status: built`, then open the URL.
-6. Report both links to the user (admin link from `SECRETS.local.md`).
+Current state
+- Repo `natalietran071-rgb/TTI-THD-Visit` holds `index.html`, `README.md`, `supabase/`, `.gitignore`, `.github/workflows/pages.yml`.
+- Never add `SECRETS.local.md`.
+- `pages.yml` deploys `index.html` to GitHub Pages on push. It needs Pages enabled once with Source = **GitHub Actions**
+  (Settings → Pages); the Actions token cannot create the Pages site itself. After enabling, re-run the workflow.
+- Pages URL: `https://natalietran071-rgb.github.io/TTI-THD-Visit/` (admin link = same URL + `#edit=<code>` from `SECRETS.local.md`).
 
 Editing notes
 - All app code is in `index.html` (vanilla JS, no build). Supabase URL + anon key near the bottom (`SB_URL`, `SB_KEY`).
