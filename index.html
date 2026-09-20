@@ -391,7 +391,7 @@ const addBtn=(m,lbl,extra="")=>canWrite?`<button class="btn ghost" data-add="${m
 const editBtn=(m,id,what)=>{if(!canWrite)return"";const b=busyBy(m,id);
   return (b.length?`<span class="lock" title="${esc(b.join(", "))} ${b.length>1?"have":"has"} this open in the editor right now">${esc(b[0])}${b.length>1?" +"+(b.length-1):""} editing</span>`:"")+
    `<button class="edit${b.length?" busy":""}" data-mod="${m}" data-edit="${esc(id)}" aria-label="Edit ${esc(what)}">Edit</button>`};
-const tagFor=(m,x)=>{const c=changeOf(m,x);return x.status==="Cancelled"?`<span class="tag cxl">Cancelled</span>`:c?.type==="Added"?`<span class="tag new">New</span>`:c?.type==="Edited"?`<span class="tag chg" title="Changed: ${esc(c.fields.map(k=>byF(m,k).h).join(", "))}">Changed</span>`:""};
+const tagFor=(m,x)=>x.status==="Cancelled"?`<span class="tag cxl">Cancelled</span>`:""; // New / Changed tags dropped from cards; the change log lives under Needs review and in the Excel export
 const bar=(title,btns)=>`<div class="bar"><h2 class="sec" style="margin:0">${title}</h2><div>${btns}</div></div>`;
 
 /* ---- day view ---- */
