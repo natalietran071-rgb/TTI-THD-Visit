@@ -81,38 +81,6 @@ h2.sec{font:700 22px var(--cond);margin:26px 0 10px}
 .flags .ref{color:var(--muted);font-size:12.5px}
 .empty{padding:30px;text-align:center;color:var(--muted)}
 footer{margin-top:40px;color:var(--muted);font-size:12.5px}
-/* phone layout: one scrolling tab row, full-width search, tighter cards */
-@media (max-width:640px){
- .wrap{padding:16px 14px 40px}
- header .sub{font-size:13.5px;margin-top:4px}
- .mode{font-size:11.5px;padding:1px 7px;margin-left:6px}
- .controls{position:static;padding:10px 0 8px;gap:8px}
- .tabs{flex-wrap:nowrap;overflow-x:auto;width:100%;gap:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
- .tabs::-webkit-scrollbar{display:none}
- .tabs button{flex:0 0 auto;font-size:14px;padding:7px 11px}
- .right{margin-left:0;width:100%;gap:6px}
- input[type=search]{flex:1 1 100%;min-width:0;padding:8px 10px 8px 34px}
- .btn{font-size:13px;padding:7px 10px}
- .sync{width:100%;font-size:12px}
- .who{font-size:12px}
- .dtitle .dl-long{display:none}.dtitle .dl-short{display:inline}.dtitle h2{font-size:20px!important;white-space:nowrap}
- .dchip{min-width:58px;padding:5px 9px}.dchip b{font-size:15px}.dchip span{font-size:11px}
- .dsum div{padding:6px 12px 6px 0;margin-right:12px}.dsum dd{font-size:16px}
- .ev{grid-template-columns:62px 1fr;gap:0 10px;padding:10px 0}
- .time{font-size:16px}.time small{font-size:12px}
- .ev h3{font-size:15px;padding-right:52px}
- .ev>div:nth-child(2){padding-right:0}
- .ev .edit{top:8px;padding:2px 8px;font-size:12.5px}
- .ev .lock{top:34px;font-size:11px}
- .cat{font-size:11px;margin-right:4px}
- .route{font-size:13px}
- .pchip{font-size:13px}
- .flags li{grid-template-columns:1fr}.cars{grid-template-columns:1fr}
- .bar{flex-wrap:wrap}
- .teamchips{width:100%}
- .right .btn{flex:1 1 40%}
- .dsum,footer{display:none!important}
-}
 
 .btn{font:600 14px var(--cond);border:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:8px 14px;cursor:pointer}
 .btn.ghost{background:var(--paper);color:var(--ink);border-color:var(--line)}
@@ -228,7 +196,6 @@ td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
 .pp-groups span{margin-right:2px}
 .pp-groups button{font:500 12.5px var(--sans);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:2px 8px;cursor:pointer;border-radius:12px}
 .pp-groups button:hover{border-color:var(--ink)}
-@media (max-width:640px){.kv{grid-template-columns:1fr;gap:2px}.kv dt{padding-top:6px}}
 @media (max-width:640px){.fgrid{grid-template-columns:1fr 1fr}.fgrid .s2{grid-column:1/-1}}
 .mode{display:inline-block;vertical-align:middle;font:600 13px var(--cond);padding:2px 10px;margin-left:8px;letter-spacing:.02em}.mode.view{border:1px solid var(--line);color:var(--muted)}.mode.edit{background:var(--signal);color:#1B2433}
 @media print{.controls{position:static}.ev.mine::before{display:none}}
@@ -271,6 +238,57 @@ td.rowact .lock{margin-right:6px}
 .warnbox.live button{margin-left:8px;padding:2px 10px;font:600 12.5px var(--cond);border:1px solid var(--ink);background:var(--paper);color:var(--ink);cursor:pointer}
 .fclash{outline:2px solid var(--flag);outline-offset:3px;position:relative}
 .fclash::after{content:attr(data-who);position:absolute;right:0;top:-9px;font:600 11px var(--cond);background:var(--flag);color:#fff;padding:0 6px;z-index:1;white-space:nowrap}
+/* placed last on purpose: phone overrides win over the base rules above */
+/* phone layout: one scrolling tab row, full-width search, tighter cards */
+@media (max-width:640px){
+ .wrap{padding:16px 14px 40px}
+ header .sub{font-size:13.5px;margin-top:4px}
+ .mode{font-size:11.5px;padding:1px 7px;margin-left:6px}
+ .controls{position:static;padding:10px 0 8px;gap:8px}
+ .tabs{flex-wrap:nowrap;overflow-x:auto;width:100%;gap:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .tabs::-webkit-scrollbar{display:none}
+ .tabs button{flex:0 0 auto;font-size:13.5px;padding:6px 10px}
+ .right{margin-left:0;width:100%;gap:6px}
+ input[type=search]{flex:1 1 100%;min-width:0;padding:8px 10px 8px 34px}
+ .btn{font-size:13px;padding:6px 10px}
+ .sync{width:100%;font-size:12px}
+ .who{font-size:12px}
+ .dtitle .dl-long{display:none}.dtitle .dl-short{display:inline}.dtitle h2{font-size:20px!important;white-space:nowrap}
+ .daynav{padding:2px 0 10px;gap:5px}.dchip{min-width:54px;padding:4px 8px}.dchip b{font-size:14px}.dchip span{font-size:10.5px}
+ .dtitle h2{font-size:17px!important}.step{width:30px;height:30px;font-size:19px}
+ .dsum div{padding:6px 12px 6px 0;margin-right:12px}.dsum dd{font-size:16px}
+ body{font-size:14px}
+ .ev{grid-template-columns:50px 1fr;gap:0 8px;padding:8px 0}
+ .time{font-size:15px;line-height:1.2}.time small{font-size:11px}
+ .ev h3{font-size:14.5px;line-height:1.3;padding-right:46px}
+ .ev>div:nth-child(2){padding-right:0}
+ .ev .edit{top:6px;padding:1px 7px;font-size:12px}
+ .ev .lock{top:30px;font-size:10.5px}
+ .cat{font-size:10.5px;margin-right:4px;padding:0 4px}
+ .teambadge{font-size:10.5px;margin-left:4px;padding:0 4px}
+ .tag{font-size:10.5px;margin-left:4px}
+ .route{font-size:12.5px;margin-top:1px}
+ .kv{grid-template-columns:46px 1fr;gap:3px 6px;margin-top:5px;font-size:13px}
+ .kv dt{font-size:11.5px;padding-top:3px;white-space:nowrap}
+ .kv dd{gap:3px}
+ .pchip{font-size:12.5px;padding:1px 7px;gap:4px;line-height:1.3}
+ .pchip small{font-size:10.5px}
+ .cnt{min-width:16px;font-size:10.5px;line-height:15px}
+ .car{font-size:11.5px;padding:0 6px}.car small{font-size:10px}
+ .meta,.note{font-size:12.5px;margin-top:4px}
+ .note{padding:2px 6px}
+ .ev.meal .time small{font-size:11px}
+ .flags li{grid-template-columns:1fr}.cars{grid-template-columns:1fr}
+ .bar .btn{white-space:nowrap;flex:0 0 auto}
+ .todaytag{display:none}
+ .teamchips{width:100%}
+ .right .btn{flex:1 1 40%}
+ .dsum,footer{display:none}
+ .trip{grid-template-columns:64px 1fr;padding:7px 10px;font-size:13px}.trip .t{font-size:14px}
+ table{font-size:13px}th,td{padding:7px 8px}
+ .crew{font-size:13px}.carbox h3{font-size:19px}
+ .who .linkish{font-size:12px}
+}
 </style>
 </head>
 <body>
