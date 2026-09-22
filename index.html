@@ -209,6 +209,9 @@ td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
 .quick{display:flex;gap:4px;margin-top:4px}
 .quick button{font:500 12px var(--sans);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:1px 8px;cursor:pointer;border-radius:10px}
 .quick button:hover{border-color:var(--ink)}
+.riders{padding:10px 14px 12px}.riders .flabel{margin-bottom:6px}
+.muted{color:var(--muted);font-size:13px}
+.nocar{margin-top:18px}.nocar .flabel{margin-bottom:6px}
 /* venues: cards with map + photos */
 .venue .time{font:inherit}.venue .time small{display:block;color:var(--muted);font-size:12.5px;margin-top:4px}
 .vact{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
@@ -512,16 +515,18 @@ function schedule(){
   if(!rows.length)return head+empty();
   return head+daySummary(rows)+`<div class="day">`+rows.map(evRow).join("")+`</div>`;
 }
-function cars(){
-  const clashT=new Set();V.C.forEach(({a,b})=>{clashT.add(a.evt+a.car);clashT.add(b.evt+b.car)});
-  const C=CARS(),T=V.T;
-  const ids=Object.keys(C).filter(c=>filt([C[c],...T.filter(t=>t.car===c)]).length);
+function cars(){ // who rides which car: driver, PIC and passengers from People → Assigned Vehicle (no day-by-day trips here)
+  const C=CARS(),P=live("people");
+  const riders=c=>P.filter(p=>list(p.vehicle).includes(c)).sort((a,b)=>a.name.localeCompare(b.name));
+  const ids=Object.keys(C).filter(c=>filt([C[c],...riders(c)]).length);
   const head=bar("Cars & drivers",addBtn("cars","Add car"));
   if(!ids.length)return head+empty();
-  return head+`<div class="cars">`+ids.map(c=>{const h=C[c];const L=filt(T.filter(t=>t.car===c)).sort((a,b)=>(a.date+a.start).localeCompare(b.date+b.start));const all=T.filter(t=>t.car===c).length;
+  const noCar=P.filter(p=>/VIP|Visitor/i.test(p.role)&&!list(p.vehicle).some(c=>C[c])).sort((a,b)=>a.name.localeCompare(b.name));
+  return head+`<div class="cars">`+ids.map(c=>{const h=C[c],R=riders(c);
    return `<article class="carbox" style="--cc:var(${carVar(c)})"><header style="position:relative"><h3>${esc(c)}<span class="plate">${esc(h.plate)}</span>${tagFor("cars",h)}</h3>
-   <dl class="crew"><dt>Driver</dt><dd>${h.driver?pchips(h.driver):""} ${tel(h.driverPhone)}</dd><dt>PIC</dt><dd>${h.pic?pchips(h.pic)+" "+tel(h.picPhone):"<span style='color:var(--flag)'>Not assigned</span>"}</dd><dt>Trips</dt><dd>${all}</dd></dl>${editBtn("cars",c,c)}</header>`+
-   (L.length?L.map(t=>{const x=clashT.has(t.evt+t.car);return `<div class="trip ${x?"clash":""}"><div class="t">${esc(t.start)}<small>${fmtDay(t.date)}</small></div><div><div>${esc(t.origin)} → ${esc(t.destination)}</div><div class="who">${esc(t.purpose)}${t.details?", "+esc(t.details):""}</div>${t.group?`<div class="chipline">${pchips(t.group,true)}</div>`:""}${x?`<div class="who" style="color:var(--flag)">Overlaps another trip for this car</div>`:""}</div></div>`}).join(""):`<div class="trip"><div></div><div class="who">No trips yet. Add this car to an event in the Schedule.</div></div>`)+`</article>`}).join("")+`</div>`;
+   <dl class="crew"><dt>Driver</dt><dd>${h.driver?pchips(h.driver):"<span class='muted'>Not set</span>"} ${tel(h.driverPhone)}</dd><dt>PIC</dt><dd>${h.pic?pchips(h.pic)+" "+tel(h.picPhone):"<span style='color:var(--flag)'>Not assigned</span>"}</dd></dl>${editBtn("cars",c,c)}</header>
+   <div class="riders"><div class="flabel">Passengers <span class="cnt">${R.length}</span></div>${R.length?`<div class="chipline">${pchips(R.map(p=>p.name).join("; "))}</div>`:`<div class="muted">No one assigned yet${canWrite?". Set “Assigned Vehicle” in People → Edit":""}.</div>`}</div></article>`}).join("")+`</div>`+
+   (noCar.length?`<div class="nocar"><span class="flabel">VIP visitors without a car</span><div class="chipline">${pchips(noCar.map(p=>p.name).join("; "),true)}</div></div>`:"");
 }
 function people(){
   const roles=["All","VIP / Visitor","Car PIC","Driver","Factory PIC","Passenger","Cruise participant"];
