@@ -210,6 +210,8 @@ td.rowact{width:1%;white-space:nowrap}td.rowact .edit{position:static}
 .quick button{font:500 12px var(--sans);border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:1px 8px;cursor:pointer;border-radius:10px}
 .quick button:hover{border-color:var(--ink)}
 .riders{padding:10px 14px 12px}.riders .flabel{margin-bottom:6px}
+.riders .pp-tag{font-size:13px}.riders .pp-tag small{font-size:11px;color:var(--muted);margin-left:4px}
+.addride{display:flex;gap:6px;margin-top:8px}.addride input{flex:1;min-width:0;font:13.5px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--line);padding:5px 8px}
 .muted{color:var(--muted);font-size:13px}
 .nocar{margin-top:18px}.nocar .flabel{margin-bottom:6px}
 /* venues: cards with map + photos */
@@ -525,7 +527,10 @@ function cars(){ // who rides which car: driver, PIC and passengers from People 
   return head+`<div class="cars">`+ids.map(c=>{const h=C[c],R=riders(c);
    return `<article class="carbox" style="--cc:var(${carVar(c)})"><header style="position:relative"><h3>${esc(c)}<span class="plate">${esc(h.plate)}</span>${tagFor("cars",h)}</h3>
    <dl class="crew"><dt>Driver</dt><dd>${h.driver?pchips(h.driver):"<span class='muted'>Not set</span>"} ${tel(h.driverPhone)}</dd><dt>PIC</dt><dd>${h.pic?pchips(h.pic)+" "+tel(h.picPhone):"<span style='color:var(--flag)'>Not assigned</span>"}</dd></dl>${editBtn("cars",c,c)}</header>
-   <div class="riders"><div class="flabel">Passengers <span class="cnt">${R.length}</span></div>${R.length?`<div class="chipline">${pchips(R.map(p=>p.name).join("; "))}</div>`:`<div class="muted">No one assigned yet${canWrite?". Set “Assigned Vehicle” in People → Edit":""}.</div>`}</div></article>`}).join("")+`</div>`+
+   <div class="riders"><div class="flabel">Passengers <span class="cnt">${R.length}</span></div>
+    ${R.length?`<div class="chipline">${canWrite?R.map(p=>`<span class="pp-tag">${esc(p.name)}${p.company?`<small>${esc(p.company)}</small>`:""}<button type="button" data-unride="${esc(p.name)}" data-car="${esc(c)}" aria-label="Remove ${esc(p.name)} from ${esc(c)}">×</button></span>`).join(""):pchips(R.map(p=>p.name).join("; "))}</div>`:`<div class="muted">No one assigned yet.</div>`}
+    ${canWrite?`<div class="addride"><input class="ride-in" list="dl_riders" data-car="${esc(c)}" placeholder="Add passenger: type a name" aria-label="Add passenger to ${esc(c)}" autocomplete="off"><button type="button" class="btn ghost sm" data-ride="${esc(c)}">Add</button></div>`:""}</div></article>`}).join("")+`</div>`+
+   (canWrite?`<datalist id="dl_riders">${P.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${esc(p.name)}">${esc([p.company,p.role].filter(Boolean).join(", "))}</option>`).join("")}</datalist>`:"")+
    (noCar.length?`<div class="nocar"><span class="flabel">VIP visitors without a car</span><div class="chipline">${pchips(noCar.map(p=>p.name).join("; "),true)}</div></div>`:"");
 }
 function people(){
@@ -598,6 +603,9 @@ $("main").onclick=e=>{
   if(b.dataset.r){role=b.dataset.r;render()}
   else if("dayPick" in b.dataset){if(b.dataset.dayPick)setDay(b.dataset.dayPick)}
   else if(b.dataset.jump){const el=document.getElementById("ev-"+b.dataset.jump);if(el){el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1600)}}
+  else if(b.dataset.ride!==undefined){const inp=b.parentElement.querySelector(".ride-in");addRider(b.dataset.ride,inp?inp.value:"")}
+  else if(b.dataset.unride!==undefined){const p=findP(b.dataset.unride),c=b.dataset.car;if(!p)return;
+    save("people",{...p,vehicle:list(p.vehicle).filter(x=>x!==c).join("; ")},`${p.name} removed from ${c}`)}
   else if(b.dataset.map){const v=STORE.venues.find(y=>y.id===b.dataset.map),box=$("map-"+b.dataset.map);if(!v||!box)return;
     const open=box.hidden;if(open){OPENMAPS.add(v.id);if(!box.firstChild)box.innerHTML=mapFrame(v)}else OPENMAPS.delete(v.id);
     box.hidden=!open;b.textContent=open?"Hide map":"Show map";b.setAttribute("aria-expanded",String(open))}
@@ -605,6 +613,13 @@ $("main").onclick=e=>{
   else if(b.dataset.add)openEditor(b.dataset.add,null,b.dataset.day);
   else if(b.dataset.restore){const m=b.dataset.mod,x=STORE[m].find(y=>y.id===b.dataset.restore);save(m,{...x,deleted:false},"Restored "+x.id)}
 };
+async function addRider(c,name){ // assign a person (from People) to a car by updating their Assigned Vehicle
+  name=(name||"").trim();if(!name){toast("Type a name first.");return}
+  const p=findP(name);if(!p){toast(`“${name}” isn't in People yet. Add the person in People, then assign the car.`);return}
+  if(list(p.vehicle).includes(c)){toast(`${p.name} is already in ${c}.`);return}
+  await save("people",{...p,vehicle:[...list(p.vehicle),c].join("; ")},`${p.name} added to ${c}`);
+}
+$("main").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.classList.contains("ride-in")){e.preventDefault();addRider(e.target.dataset.car,e.target.value)}});
 $("xlsBtn").onclick=exportXlsx;
 document.addEventListener("keydown",e=>{if(tab!=="schedule"||$("dlg").open||/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName))return;
   const D=allDays(),cur=currentDay();if(cur==="all")return;const i=D.indexOf(cur);

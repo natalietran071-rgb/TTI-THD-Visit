@@ -21,7 +21,7 @@ Static `index.html` + Supabase for live shared data. No build step.
 - **Photos**: venue editor → *Add photos* (multiple, phone camera OK). Images are resized to 1600px and uploaded to Supabase Storage bucket `thd-photos` (public read; anon uploads only into `venues/`). Removing a photo unlinks it from the venue; the file stays in the bucket.
 - **Refresh**: data loads on open and streams live; the **Refresh** button re-fetches every collection on demand (also runs when the tab becomes visible again or the connection returns). The status line shows the last update time.
 - **Excel export**: in-browser with ExcelJS (5 original sheets + Cars + Change Log).
-- **Cars & drivers tab** shows who rides which car: plate, driver, PIC and passengers (from People → *Assigned Vehicle*), plus VIP visitors with no car. No per-day trips there.
+- **Cars & drivers tab** shows who rides which car: plate, driver, PIC and passengers (from People → *Assigned Vehicle*), plus VIP visitors with no car. On the edit link each card has *Add passenger* (a name from People) and × on each passenger; both update that person's Assigned Vehicle. No per-day trips there.
 - **Car trips** (Transportation sheet in the Excel export, and the car-clash flags) are derived from each event's cars + each car's driver/PIC.
 
 ## Deploy
