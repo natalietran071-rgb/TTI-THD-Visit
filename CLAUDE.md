@@ -1,6 +1,7 @@
 # Instructions for Claude Code
 
-Goal: keep the run sheet public without sign-in. Live at https://tti-thd-visit.vercel.app/ (Vercel, auto-deploys on push).
+Status: ARCHIVED 28 Sep 2026. Project finished; do not add features unless asked. Data snapshot kept offline by the owner (never commit `backup/`, it holds personal data).
+Former goal: keep the run sheet public without sign-in (was live at https://tti-thd-visit.vercel.app/ on Vercel).
 
 Current state
 - Repo `natalietran071-rgb/TTI-THD-Visit` holds `index.html`, `README.md`, `supabase/`, `.gitignore`, `.github/workflows/pages.yml`.

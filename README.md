@@ -1,5 +1,8 @@
 # THD Visit Vietnam – Run Sheet
 
+> **Archived 28 Sep 2026.** The visit is over and the app is no longer maintained. Code kept for reference. The data snapshot (JSON + CSV) is kept offline by the owner, not in this public repo.
+> The Vercel deployment may be paused or removed; to restore, import this repo on Vercel again (Preset: Other, no build) with the same Supabase project.
+
 Single-page run sheet for the Home Depot executive visit (20–25 Sep 2026).
 Static `index.html` + Supabase for live shared data. No build step.
 
